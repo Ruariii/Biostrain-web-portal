@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+<html lang="en">
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <title>Login account</title>
+
+
+
+</head>
+<body>
+<div>
+  <br>
+</div>
+<form class="d-grid row g-3 col-6 mx-auto">
+  <h5 style="text-align:center">Login to your account</h5>
+  <hr>
+  <div>
+    <label for="unameEnter" class="form-label">Username</label>
+
+    <input type="string" class="form-control" id="unameEnter" placeholder="Enter username">
+  </div>
+  <div>
+    <label for="pwdEnter" class="form-label">Password</label>
+    <input type="password" class="form-control" id="pwdEnter" placeholder="Enter password">
+    <div id="pwdHelp" class="form-text" style="text-align:center">Passwords must be at least 8 characters long and contain 1 numeric character.</div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-4">
+      <a class="btn btn-dark" id="login" style="width:100%"> Login </a>
+    </div>
+    <div class="col-4">
+      <a class="btn btn-dark" id="registerLogin" href="/register" style="width:100%"> Register </a>
+    </div>
+    <div class="col-4">
+      <a class="btn btn-dark" id="homeLogin" href="/" style="width:100%"> Home </a>
+    </div>
+  </div>
+
+
+
+
+</form>
+</body>
+{% endblock %}
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+<html lang="en">
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <title>Create an account</title>
+
+
+
+</head>
+
+<body>
+<br>
+<form class="row g-3 col-6 mx-auto">
+  <h5 style="text-align:center">Create your account</h5>
+  <hr>
+  <div>Personal information</div>
+  <div class="col-6">
+    <input type="string" class="form-control" id="fnameInput" placeholder="Enter first name">
+  </div>
+  <div class="col-6">
+
+    <input type="password" class="form-control" id="snameInput" placeholder="Enter surname">
+  </div>
+
+  <div>Account information</div>
+  <div class="col-4">
+    <input type="string" class="form-control" id="unameInput" placeholder="Enter username">
+  </div>
+  <div class="col-4">
+
+    <input type="password" class="form-control" id="pwdInput" placeholder="Enter password">
+  </div>
+  <div class="col-4">
+    <input type="password" class="form-control" id="pwdReInput" placeholder="Re-enter password">
+  </div>
+  <div id="pwdHelp" class="form-text" style="text-align:center">Passwords must be at least 8 characters long and contain 1 numeric character.</div>
+
+  <div>Additional information</div>
+  <div class="col-12">
+    <input type="email" class="form-control" id="emailInput" placeholder="Enter email address">
+  </div>
+  <div class="row g-3">
+    <div class="col dropdown" style="width:100%">
+      <a class="btn btn-light dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="width:100%">
+      Select organisation
+      </a>
+        <ul class="dropdown-menu" style="width:100%">
+          <li><a class="dropdown-item" href="#">{options[0]}</a></li>
+          <li><a class="dropdown-item" href="#">{options[1]}</a></li>
+          <li><a class="dropdown-item" href="#">{options[2]}</a></li>
+        </ul>
+    </div>
+    <div class="col dropdown" style="width:100%">
+      <a class="btn btn-light dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="width:100%">
+      Select role
+      </a>
+        <ul class="dropdown-menu" style="width:100%">
+          <li><a class="dropdown-item" href="#">Player</a></li>
+          <li><a class="dropdown-item" href="#">Coach</a></li>
+          <li><a class="dropdown-item" href="#">Admin</a></li>
+        </ul>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <br><br><br>
+    <a class="btn btn-dark" id="register" href="/register" style="width:100%"> Create account </a>
+  </div>
+  <div class="col-12">
+    <a class="btn btn-dark" id="homeRegister" href="/" style="width:100%">Home</a>
+  </div>
+
+
+</form>
+</body>
+{% endblock %}
+</html>
