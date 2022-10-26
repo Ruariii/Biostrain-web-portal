@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 {% extends 'base.html' %}
-<html lang="en">
 {% block content %}
-<head>
-    <meta charset="UTF-8">
-    <title>Welcome to Biostrain!</title>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Welcome to Biostrain!</title>
 
-</head>
+    </head>
 
 
-<body>
-<p> Web app currently in development. </p>
-</body>
+    <body>
+    <p> Web app currently in development. </p>
+    <br><br><br><br>
+    <center>
+        <img src="{{url_for('static', filename='images/assembly.jpg')}}" width="80%" border="1px">
+    </center>
+
+    <br><br>
+
 {% endblock %}
 </html>

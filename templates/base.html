@@ -2,37 +2,43 @@
 <head>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>    <!-- CSS only -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+
+<link href="{{ url_for('static', filename= 'css/style.css')}}" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
 </head>
 <html lang="en">
-<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+<link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
 
 <nav class="navbar navbar-expand-lg bg-light">
   <div class="container-fluid">
     <strong>
             <a class="navbar-brand" href="/"> Biostrain web portal</a>
     </strong>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <a href="https://www.lucidinnovation.com/" target="_blank">
+      <img src="{{url_for('static', filename='images/lucid_logo_transparent.png')}}" class="img-fluid" width="175" height="60">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="expand" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="navbar navbar-expand-lg bg-light" id="navbarNav">
+    <div class="dropdown-collapse" id="navbarNav">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="/">Home</a>
+          <a class="nav-link" aria-current="page" href="/">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="login">Login</a>
+          <a class="nav-link" href="/login">Login</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/register">Register</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link disabled" href="/data">View Data</a>
         </li>
       </ul>
     </div>
   </div>
   <hr>
 </nav>
-{% block content %}
-{% endblock %}
+<br>
+<div class="container">
+  {% block content %}
+  {% endblock %}
+</div>
+
 </html>
