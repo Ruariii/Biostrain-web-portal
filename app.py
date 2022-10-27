@@ -4,6 +4,9 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from sqlalchemy import Table, create_engine
+from flask_mysqldb import MySQL
+import MySQLdb.cursors
+import re
 import os
 import pandas as pd
 from datetime import datetime
@@ -14,10 +17,12 @@ from datetime import datetime
 #Create flask instance
 app = Flask(__name__)
 #Add database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+engine = create_engine('mysql+pymysql://root:jqtnnhj2@localhost/users')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost/users'
 app.config['SECRET_KEY'] = os.urandom(12)
 #Initialise database
-db = SQLAlchemy(app)
+with app.app_context():
+    db = SQLAlchemy(app)
 
 #Create user model
 class Users(db.Model):
@@ -33,13 +38,9 @@ class Users(db.Model):
 
     #Create a string
     def __repr__(self):
-        return '<Username %r>' % self.uname
-
-with app.app_context():
-    db.create_all()
+        return '<Username %r>' % self.id
 
 #Create form class
-
 class registerForm(FlaskForm):
     fname = StringField("Enter first name", validators=[DataRequired()])
     sname = StringField("Enter surname", validators=[DataRequired()])
@@ -92,19 +93,28 @@ def register():
     email = None
     org = None
     role = None
-    form = registerForm
+    form = registerForm()
     if form.validate_on_submit():
         user = Users.query.filter_by(uname = form.uname.data).first
         if user is None:
             uemail = Users.query.filter_by(email = form.email.data).first
             if uemail is None:
-                user = Users(fname=form.fname.data, sname=form.sname.data,
-                             uname=form.uname.data, pwd=form.pwd.data,
-                             email=form.email.data, org=form.org.data,
-                             role=form.role.data)
-                db.session.add(user)
-                db.session.commit()
-                flash("Account created succesfully")
+                if pwd==repwd:
+                    user = Users(fname=form.fname.data, sname=form.sname.data,
+                                 uname=form.uname.data, pwd=form.pwd.data,
+                                 email=form.email.data, org=form.org.data,
+                                 role=form.role.data)
+                    with app.app_context():
+                        db.session.add(user)
+                        db.session.commit()
+                    flash("Account created successfully")
+                else:
+                    flash("Passwords do not match!")
+            else:
+                flash("Email already registered!")
+        else:
+            flash("Username already registered!")
+
     return render_template('register.html',
                            fname=fname,
                            sname=sname,

@@ -10,13 +10,17 @@
 
 
     <body>
-    <p> Web app currently in development. </p>
-    <br><br><br><br>
+    <br><br><br>
     <center>
-        <img src="{{url_for('static', filename='images/assembly.jpg')}}" width="80%" border="1px">
+        <div class="card text-bg-light" style="width: 90%">
+            <img src="{{url_for('static', filename='images/assembly.jpg')}}" width="100%" height="600px">
+            <div class="card-body">
+                <strong><p class="card-text" style="text-align:center; font-size:small">The Biostrain device.</p></strong>
+            </div>
+        </div>
     </center>
 
     <br><br>
 
 {% endblock %}
-</html>
+

@@ -21,24 +21,26 @@
     {% endfor %}
     <br>
   </div>
-  {% if uname %}
+  {% if submit %}
     <h4> Welcome {{uname}}! </h4>
   {% else %}
     <h4> Login to your account </h4>
     <br>
-    <form method="POST">
-      {{ form.hidden_tag() }}
+    <div class="shadow p-3 mb-5 bg-body rounded">
+      <form method="POST">
+        {{ form.hidden_tag() }}
 
-      {{ form.uname.label(class="form-label") }}
-      {{ form.uname(class="form-control") }}
+        {{ form.uname.label(class="form-label") }}
+        {{ form.uname(class="form-control") }}
 
-      {{ form.pwd.label(class="form-label") }}
-      {{ form.pwd(class="form-control") }}
-      <br>
-      {{ form.submit(class="btn btn-secondary")}}
+        {{ form.pwd.label(class="form-label") }}
+        {{ form.pwd(class="form-control")) }}
+        <br>
+        {{ form.submit(class="btn btn-secondary"}}
 
-    </form>
+      </form>
 
+    </div>
   {% endif %}
   </body>
 {% endblock %}
