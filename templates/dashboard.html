@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Dashboard</title>
+
+
+
+  </head>
+  <body>
+  <div>
+    {% for message in get_flashed_messages() %}
+
+      <div class="alert alert-dark alert-dismissible fade show" role="alert">
+        <strong>{{ message }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+    {% endfor %}
+    <br>
+  </div>
+  <h4> {{current_user.username|capitalize}} Dashboard </h4>
+  <br><br>
+  <div class="card text-center">
+  <div class="card-header text-muted">
+    Featured for {{current_user.username|capitalize}}: </div>
+  <div class="card-body">
+    <h5 class="card-title">Data from 28/10/22 now added</h5>
+    <p class="card-text">New test data from your Biostrain device is ready to view!</p>
+    <a href="#" class="btn btn-secondary">Take me there</a>
+  </div>
+  <div class="card-footer text-muted" style="text-align:left">
+    Today
+  </div>
+</div>
+  </body>
+{% endblock %}
+</html>

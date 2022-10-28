@@ -10,7 +10,18 @@
 
 
     <body>
-    <br><br><br>
+    <div>
+    {% for message in get_flashed_messages() %}
+
+      <div class="alert alert-dark alert-dismissible fade show" role="alert">
+        <strong>{{ message }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+    {% endfor %}
+    <br>
+  </div>
+    <br><br>
     <center>
         <div class="card text-bg-light" style="width: 90%">
             <img src="{{url_for('static', filename='images/assembly.jpg')}}" width="100%" height="600px">
