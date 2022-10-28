@@ -14,7 +14,13 @@ from datetime import datetime
 
 
 #Create flask instance
-app = Flask(__name__)
+def init_app():
+    app = Flask(__name__)
+    with app.app_context():
+        from plotlydash.dashboard import init_dashboard
+        app = init_dashboard(app)
+    return app
+app = init_app()
 #Add database
 engine = create_engine('mysql+pymysql://root:jqtnnhj2@localhost/userinfo')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost/userinfo'
