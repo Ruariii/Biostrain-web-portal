@@ -24,17 +24,44 @@
   <h4> {{current_user.username|capitalize}} Dashboard </h4>
   <br><br>
   <div class="card text-center">
-  <div class="card-header text-muted">
-    Featured for {{current_user.username|capitalize}}: </div>
+  <div class="card-header text-muted" style="text-align:left">
+    {{current_user.username|capitalize}} squad view: </div>
   <div class="card-body">
-    <h5 class="card-title">Data from 28/10/22 now added</h5>
-    <p class="card-text">New test data from your Biostrain device is ready to view!</p>
+    <h5 class="card-title">View entire squad</h5>
+    <p class="card-text">Observe performance across your entire organisation!</p>
     <a href="/dashapp/" class="btn btn-secondary">Take me there</a>
   </div>
   <div class="card-footer text-muted" style="text-align:left">
     Today
   </div>
 </div>
+<br><br>
+    <div class="card text-center">
+  <div class="card-header text-muted" style="text-align:left">
+    {{current_user.username|capitalize}} focussed view: </div>
+  <div class="card-body">
+    <h5 class="card-title">View player profiles</h5>
+    <p class="card-text">Select a player to view detailed performance analysis!</p>
+    <br>
+
+  <form method="post" action="/dashboard.html">
+    <div class="input-group mb-3">
+  <label class="input-group-text" for="userSelect">Select player</label>
+  <select class="form-select" id="userSelect">
+    {% for i in range(userlist|length) %}
+      <option><a class="dropdown-item" href="#">{{userlist[i]}},  {{orglist[i]}}</a></option>
+    {% endfor %}
+  </select>
+  </div>
+  </form>
+    <a href="/dashapp/" class="btn btn-secondary">Take me there</a>
+  </div>
+  <br><br>
+
+  <div class="card-footer text-muted" style="text-align:left">
+    Today
+  </div>
+
   </body>
 {% endblock %}
 </html>

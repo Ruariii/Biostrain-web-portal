@@ -17,8 +17,10 @@ from datetime import datetime
 def init_app():
     app = Flask(__name__)
     with app.app_context():
-        from plotlydash.dashboard import init_dashboard
+        from plotlydash.dashboard import init_dashboard, init_callbacks
         app = init_dashboard(app)
+        with app.app_context():
+            init_callbacks(app)
     return app
 app = init_app()
 #Add database
@@ -91,10 +93,18 @@ def logout():
     return redirect(url_for('home'))
 
 #data page
-@app.route('/dashboard')
+@app.route('/dashboard', methods=["GET", "POST"])
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    df = pd.read_csv('database.csv')
+    userlist = df['User'].unique()
+    orglist = []
+    for user in userlist:
+        for i in range(len(df)):
+            if df['User'][i] == user:
+                orglist.append(df['Org'][i])
+                break
+    return render_template('dashboard.html', userlist=userlist, orglist=orglist, df=df)
 
 @app.route('/data/<fname>+<sname>')
 def data(fname, sname):
