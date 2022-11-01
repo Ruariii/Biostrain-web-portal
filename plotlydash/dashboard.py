@@ -19,66 +19,73 @@ def init_dashboard(server):
 
     df = pd.read_csv('database.csv')
     df2 = df.sort_values('Timestamp')
-    proList=df['Protocol'].unique()
+    proList=list(df['Protocol'].unique())
+    orgList=list(df['Org'].unique())
+    tzList=['LHTZ', 'RHTZ', 'Both']
+    legList=['Front leg', 'Back leg', 'Both']
+    dataList=['Crush factor', 'Peak force', 'Force @ 0ms', 'Force @ 50ms', 'Force @ 100ms',
+              'Force @ 150ms', 'Force @ 200ms', 'Force @ 250ms', 'Force @ 300ms']
+    proList.append('Any')
+    orgList.append('All')
 
     inputs = dbc.Row([
 
         # search_params
         html.Br(), html.Br(), html.Br(),
-        dbc.Col([dbc.Label("Select squad", html_for="org-id"),
-                dcc.Dropdown(df['Org'].unique(), placeholder='Any', id="org-id", style={"color": "black"})]),
+        dbc.Col([dbc.Label("Select Squad/Group", html_for="org-id"),
+                dcc.Dropdown(orgList, value='All', id="org-id", style={"color": "black"})], className="d-grid gap-2 mx-auto"),
 
 
         dbc.Col([dbc.Label("Select Protocol", html_for="pro-id"),
-                dcc.Dropdown(df['Protocol'].unique(), placeholder='Any', id="pro-id", style={"color": "black"})]),
-
-
-        dbc.Col([dbc.Label("Select Transformational Zone", html_for="tz-id"),
-                 dcc.Dropdown(['LHTZ', 'RHTZ', 'Both'],
-                              placeholder='Both', id="tz-id", style={"color": "black"})]),
-
-        dbc.Col([dbc.Label("Select Leg", html_for="leg-id"),
-                 dcc.Dropdown(['Front leg', 'Back leg', 'Both'],
-                              placeholder='Both', id="leg-id", style={"color": "black"})]),
-
-
-        dbc.Col([dbc.Label("Select Data to View", html_for="data-id"),
-                dcc.Dropdown(['Crush factor', 'Peak force', 'Force @ 0ms', 'Force @ 50ms', 'Force @ 100ms',
-                      'Force @ 150ms', 'Force @ 200ms', 'Force @ 250ms', 'Force @ 300ms'],
-                     placeholder='Crush factor', id="data-id", style={"color": "black"})]),
-        html.Br(),
-        html.Br()
+                dcc.Dropdown(proList, value='Any', id="pro-id", style={"color": "black"})], className="d-grid gap-2 mx-auto")
     ])
     # search + clear buttons
     searchclear = dbc.Row([
         dbc.Col([dbc.Button("Update figures", id="search", color="secondary", size='md')],className="d-grid gap-2 mx-auto"),
-        dbc.Col([dbc.Button("Clear", id='clear', color="light", size='md')],className="d-grid gap-2 mx-auto")
+        dbc.Col([dbc.Button("Reset", id='clear', color="light", size='md')],className="d-grid gap-2 mx-auto")
     ],
     )
 
 
 
-    fig1 = px.scatter(df2, x=df2['Timestamp'], y=(df2["Right peak force"] + df2["Left peak force"]),
+    fig = px.scatter(df2, x=df2['Timestamp'], y=(df2["Right peak force"] + df2["Left peak force"]),
                      color=df2['User'], hover_data=['Org', 'Protocol', 'TZ'], symbol=df2['Org'])
-    fig1.update_layout(yaxis_title="Crush factor (kg)", yaxis_range=[0,300], xaxis_nticks=5,
+    fig.update_layout(yaxis_title="Crush factor (kg)", yaxis_range=[0,300], xaxis_nticks=5,
                       title_text="Peak force crush factor - all users:", height=750)
 
 
     dash_app.layout = dbc.Form(
         children = [
+            html.Br(),
             html.H3("Lucid Dashboard: Squad view", style={'textAlign':'center'}),
+            html.Hr(),
             html.Br(),
-            inputs,
+            dbc.Card([dbc.CardBody([inputs,
             html.Br(),
-            searchclear,
+            searchclear])], color='#f4f4f4'),
+            dcc.Store(id='displayData'),
             html.Br(),
-            dcc.Graph(
-                id="main-scatter",
-                figure=fig1
-            ),
+            dbc.Card([dbc.CardBody([dbc.Row([
+                dbc.Col(md=2, children=[
+                    html.Br(),html.Br(),html.Br(),html.Br(),html.Br(),html.Br(),html.Br(),html.Br(),html.Br(),
+                    dbc.Card(
+                        dbc.CardBody([dbc.Label("Select Transition Zone", html_for="tz-fig1"),
+                        dcc.Dropdown(tzList, value='Both', id="tz-fig1", style={"color": "black"}),
+                        html.Br(),
+                        dbc.Label("Select Leg", html_for="leg-fig1"),
+                        dcc.Dropdown(legList, value='Both', id="leg-fig1", style={"color": "black"}),
+                        html.Br(),
+                        dbc.Label("Select Data", html_for="data-fig1"),
+                        dcc.Dropdown(dataList, value='Crush factor', id="data-fig1", style={"color": "black"})]),
+                        color='light'
+                        )
+                ]),
+                dbc.Col(md=10, children=[dcc.Graph(
+                        id="main-scatter",
+                        figure=fig)], className="d-grid gap-2 mx-auto")])])], color='#f4f4f4')
 
         ],
-        id="dashboard-container", style={'width':'80%', 'x-align':'center'}, className="d-grid gap-2 mx-auto"
+        id="dashboard-container", style={'width':'90%', 'x-align':'center'}, className="d-grid gap-2 mx-auto"
     )
     return dash_app.server
 
@@ -88,135 +95,75 @@ def init_callbacks(dash_app):
     df2 = df.sort_values('Timestamp')
 
     @callback(
-        Output('user-id', 'options'),
-        Input('pro-id', 'value'))
+        Output('pro-id', 'options'),
+        Input('org-id', 'value'))
     def set_pro_options(selected_org):
-        if selected_org == 'Any':
-            pro_options = df['Protocol'].unique()
+        proList = list(df['Protocol'].unique())
+        proList.append('Any')
+        if selected_org == 'All':
+            pro_options = proList
         else:
             pro_options = []
             for i in range(len(df['Org'])):
                 if df['Org'][i] == selected_org:
                     pro_options.append(df['Protocol'][i])
-                    pro_options = list(np.unique(pro_options))
+            pro_options=list(set(pro_options))
+            pro_options.append('Any')
         return pro_options
 
     @callback(
-        output=[Output('main-scatter', 'figure')],
-        inputs=[Input('search', 'n_clicks')],
-        state=[State("org-id", "value"), State("user-id", "value"),
-               State("pro-id", "value"), State("tz-id", "value"),
-               State("leg-id", "value"), State("data-id", "value")])
-    def plotData(search_click, org_val, pro_val, tz_val, leg_val, data_val):
-        if search_click == None:
-
-
-            fig1 = px.scatter(df2, x=df2['Timestamp'], y=(df2["Right peak force"] + df2["Left peak force"]),
-                              color=df2['User'], hover_data=['Org', 'Protocol', 'TZ'], symbol=df2['Org'])
-            fig1.update_layout(yaxis_title="Crush factor (kg)", yaxis_range=[0, 300], xaxis_nticks=5,
-                               title_text="Peak force crush factor - all users:", height=750)
-
-            return fig1
-
+        Output('leg-fig1', 'options'),
+        Input('data-fig1', 'value')
+    )
+    def update_leg_1(dataVal):
+        if dataVal == 'Crush factor':
+            legOptions=['Both']
         else:
-            Lprefix, Rprefix = 'Left ', 'Right '
-            FprefixL, BprefixL = 'LHTZ: Front leg ', 'LHTZ: Back leg '
-            FprefixR, BprefixR = 'RHTZ: Front leg ', 'RHTZ: Back leg '
-            if tz_val == 'Both':
-                searchParams = {'Org': org_val, 'Protocol': pro_val}
+            legOptions=['Front leg', 'Back leg', 'Both']
+        return legOptions
 
+
+    @callback(
+        Output('displayData', 'data'),
+        Input('search', 'n_clicks'),
+        State('org-id', 'value'),
+        State('pro-id', 'value'))
+    def create_df(n_click, org, pro):
+        if n_click == None or (org == 'All' and pro == 'Any'):
+            displayData=df
+        else:
+            if org == 'All':
+                displayData = df.query(f"Protocol=='{pro}'")
+            elif pro == 'Any':
+                displayData=df.query(f"Org=='{org}'")
             else:
-                searchParams = {'Org': org_val, 'Protocol': pro_val, 'TZ': tz_val}
-            index = []
-            toDrop = []
-            for i in range(len(df)):
-                test = 0
-                for param in searchParams:
-                    if searchParams[param] == df[param][i]:
-                        test += 1
-                if test == len(searchParams):
-                    index.append(i)
-                else:
-                    toDrop.append(i)
+                displayData=df.query(f"Org=='{org}' & Protocol=='{pro}'")
 
-            displayData = df.drop(['Org', 'User', 'Protocol'], axis=1)
-            displayData = displayData.drop(toDrop, axis=0)
-            displayData = displayData.reset_index(drop=True)  # return displayData for table
+        return displayData.to_json()
 
-            # split data into LHTZ/RHTZ
-            Ltests, Rtests = [], []
-            count = 0
-            for tz in displayData['TZ']:
-                if tz == 'LHTZ':
-                    Rtests.append(count)
-                else:
-                    Ltests.append(count)
-                count += 1
+    @callback(
+        Output('main-scatter', 'figure'),
+        Input('search', 'n_clicks'),
+        State('displayData', 'data')
+    )
+    def update_figs(n_click, data):
 
-            lData = displayData.drop(Ltests, axis=0)
-            rData = displayData.drop(Rtests, axis=0)
+        filteredDf = pd.read_json(data)
+        fig = px.scatter(filteredDf, x=filteredDf['Timestamp'], y=(filteredDf["Right peak force"] + filteredDf["Left peak force"]),
+                          color=filteredDf['User'], hover_data=['Org', 'Protocol', 'TZ'], symbol=filteredDf['Org'])
+        fig.update_layout(yaxis_title="Crush factor (kg)", yaxis_range=[0, 300], xaxis_nticks=5,
+                           title_text="Peak force crush factor - all users:", height=750)
 
-            # filter out front/back leg depending on leg_val
-            plotDict = {}
-            if leg_val == 'Front leg' and tz_val == 'LHTZ':
-                for data in data_val:
-                    plotDict[FprefixL + data.lower()] = lData[Lprefix + data.lower()]
-            if leg_val == 'Back leg' and tz_val == 'LHTZ':
-                for data in data_val:
-                    plotDict[BprefixL + data.lower()] = lData[Rprefix + data.lower()]
-            if leg_val == 'Both' and tz_val == 'LHTZ':
-                for data in data_val:
-                    plotDict[FprefixL + data.lower()] = lData[Lprefix + data.lower()]
-                    plotDict[BprefixL + data.lower()] = lData[Rprefix + data.lower()]
+        return fig
 
-            if leg_val == 'Front leg' and tz_val == 'RHTZ':
-                for data in data_val:
-                    plotDict[FprefixR + data.lower()] = rData[Rprefix + data.lower()]
-            if leg_val == 'Back leg' and tz_val == 'RHTZ':
-                for data in data_val:
-                    plotDict[BprefixR + data.lower()] = rData[Lprefix + data.lower()]
-            if leg_val == 'Both' and tz_val == 'RHTZ':
-                for data in data_val:
-                    plotDict[FprefixR + data.lower()] = rData[Rprefix + data.lower()]
-                    plotDict[BprefixR + data.lower()] = rData[Lprefix + data.lower()]
 
-            if leg_val == 'Front leg' and tz_val == 'Both':
-                for data in data_val:
-                    plotDict[FprefixL + data.lower()] = lData[Lprefix + data.lower()]
-                    plotDict[FprefixR + data.lower()] = rData[Rprefix + data.lower()]
-            if leg_val == 'Back leg' and tz_val == 'Both':
-                for data in data_val:
-                    plotDict[BprefixL + data.lower()] = lData[Rprefix + data.lower()]
-                    plotDict[BprefixR + data.lower()] = rData[Lprefix + data.lower()]
-            if leg_val == 'Both' and tz_val == 'Both':
-                for data in data_val:
-                    plotDict[FprefixL + data.lower()] = lData[Lprefix + data.lower()]
-                    plotDict[BprefixL + data.lower()] = lData[Rprefix + data.lower()]
-                    plotDict[FprefixR + data.lower()] = rData[Rprefix + data.lower()]
-                    plotDict[BprefixR + data.lower()] = rData[Lprefix + data.lower()]
 
-            xplot = displayData['Timestamp']
-
-            ptitle = 'Data: '+str(displayData)+' Squad: '+str(org_val)+' Protocol: '+str(pro_val)
-
-            fig = go.Figure()
-            fig.update_layout(title_text=ptitle)
-
-            for plot in plotDict:
-                fig.add_trace(go.Scatter(
-                    x=xplot,
-                    y=plotDict[plot],
-                    name=plot))
-
-            return fig
 
     @callback(
         Output('org-id', 'value'),
         Output('pro-id', 'value'),
-        Output('tz-id', 'value'),
-        Output('leg-id', 'value'),
-        Output('data-id', 'value'),
-        Input('clear', 'n_clicks'))
+        Input('clear', 'n_clicks')
+        )
     def clearInps(clear_click):
-        return "Any", "Any", "Any","Any", "Crush Factor"
+        return "All", "Any"
 
