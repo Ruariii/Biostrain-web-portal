@@ -23,7 +23,7 @@ def init_dashboard(server):
     orgList=list(df['Org'].unique())
     tzList=['LHTZ', 'RHTZ', 'Both']
     legList=['Front leg', 'Back leg', 'Both']
-    dataList=['Crush factor', 'Peak force', 'Force @ 0ms', 'Force @ 50ms', 'Force @ 100ms',
+    dataList=['Peak force', 'Force @ 0ms', 'Force @ 50ms', 'Force @ 100ms',
               'Force @ 150ms', 'Force @ 200ms', 'Force @ 250ms', 'Force @ 300ms']
     proList.append('Any')
     orgList.append('All')
@@ -48,10 +48,15 @@ def init_dashboard(server):
 
 
 
-    fig = px.scatter(df2, x=df2['Timestamp'], y=(df2["Right peak force"] + df2["Left peak force"]),
-                     color=df2['User'], hover_data=['Org', 'Protocol', 'TZ'], symbol=df2['Org'])
-    fig.update_layout(yaxis_title="Crush factor (kg)", yaxis_range=[0,300], xaxis_nticks=5,
-                      title_text="Peak force crush factor - all users:", height=750)
+    fig1 = px.scatter(df2, x='Left peak force', y="Right peak force",
+                     color=df2['User'], hover_data=['Org', 'Protocol', 'TZ'], symbol=df2['TZ'])
+    fig1.update_layout(yaxis_title="Right leg peak force (kg)", xaxis_title="Left leg peak force (kg)",
+    yaxis_range=[-10,150], xaxis_range=[-10,150], xaxis_nticks=5,
+                      title_text="Combined peak force:", height=750)
+
+    fig2 = px.bar(df, y=(df['Combined force @ 150ms']), color='User', pattern_shape='TZ', hover_data=['Org', 'Protocol', 'User'])
+    fig2.update_layout(yaxis_title="Force @ 150ms (kg)",
+                       title_text="Combined force @ 150ms:", height=750)
 
 
     dash_app.layout = dbc.Form(
@@ -65,25 +70,23 @@ def init_dashboard(server):
             searchclear])], color='#f4f4f4'),
             dcc.Store(id='displayData'),
             html.Br(),
-            dbc.Card([dbc.CardBody([dbc.Row([
-                dbc.Col(md=2, children=[
-                    html.Br(),html.Br(),html.Br(),html.Br(),html.Br(),html.Br(),html.Br(),html.Br(),html.Br(),
-                    dbc.Card(
-                        dbc.CardBody([dbc.Label("Select Transition Zone", html_for="tz-fig1"),
-                        dcc.Dropdown(tzList, value='Both', id="tz-fig1", style={"color": "black"}),
-                        html.Br(),
-                        dbc.Label("Select Leg", html_for="leg-fig1"),
-                        dcc.Dropdown(legList, value='Both', id="leg-fig1", style={"color": "black"}),
-                        html.Br(),
-                        dbc.Label("Select Data", html_for="data-fig1"),
-                        dcc.Dropdown(dataList, value='Crush factor', id="data-fig1", style={"color": "black"})]),
-                        color='light'
-                        )
-                ]),
-                dbc.Col(md=10, children=[dcc.Graph(
+            dbc.Card([
+                dbc.CardBody([
+                    dcc.Graph(
                         id="main-scatter",
-                        figure=fig)], className="d-grid gap-2 mx-auto")])])], color='#f4f4f4')
-
+                        figure=fig1,
+                        )
+                ])
+            ], color = '#f4f4f4'),
+            html.Br(),
+            dbc.Card([
+                dbc.CardBody([
+                    dcc.Graph(
+                        id="main-bar",
+                        figure=fig2,
+                    )
+                ])
+            ], color='#f4f4f4')
         ],
         id="dashboard-container", style={'width':'90%', 'x-align':'center'}, className="d-grid gap-2 mx-auto"
     )
@@ -143,18 +146,26 @@ def init_callbacks(dash_app):
 
     @callback(
         Output('main-scatter', 'figure'),
+        Output('main-bar', 'figure'),
         Input('search', 'n_clicks'),
-        State('displayData', 'data')
+        State('displayData', 'data'),
+        config_prevent_initial_callbacks=True
     )
     def update_figs(n_click, data):
 
         filteredDf = pd.read_json(data)
-        fig = px.scatter(filteredDf, x=filteredDf['Timestamp'], y=(filteredDf["Right peak force"] + filteredDf["Left peak force"]),
-                          color=filteredDf['User'], hover_data=['Org', 'Protocol', 'TZ'], symbol=filteredDf['Org'])
-        fig.update_layout(yaxis_title="Crush factor (kg)", yaxis_range=[0, 300], xaxis_nticks=5,
-                           title_text="Peak force crush factor - all users:", height=750)
+        filteredDf = filteredDf.reset_index()
+        fig1 = px.scatter(filteredDf, x='Left peak force', y="Right peak force",
+                          color=filteredDf['User'], hover_data=['Org', 'Protocol', 'TZ'], symbol=filteredDf['TZ'])
+        fig1.update_layout(yaxis_title="Right leg peak force (kg)", xaxis_title="Left leg peak force (kg)",
+                           yaxis_range=[-10, 150], xaxis_range=[-10, 150], xaxis_nticks=5,
+                           title_text="Combined peak force:", height=750)
 
-        return fig
+        fig2 = px.bar(filteredDf, y='Combined force @ 150ms', color='User', pattern_shape='TZ', hover_data=['Org', 'Protocol', 'User', 'TZ'])
+        fig2.update_layout(yaxis_title="Force @ 150ms (kg)", xaxis_title="",
+                           title_text="Combined force @ 150ms:", height=750)
+
+        return fig1, fig2
 
 
 
@@ -166,4 +177,3 @@ def init_callbacks(dash_app):
         )
     def clearInps(clear_click):
         return "All", "Any"
-
