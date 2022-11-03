@@ -4,7 +4,8 @@ from dash import dcc, html, Input, Output, State, callback
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-import numpy as np
+import PBI_python_module as pb
+
 
 def init_dashboard(server):
 
@@ -72,19 +73,33 @@ def init_dashboard(server):
             html.Br(),
             dbc.Card([
                 dbc.CardBody([
-                    dcc.Graph(
+                    html.H5("Peak force overview:", className="card-title"),
+                    dbc.Row([dbc.Col([dcc.Graph(
                         id="main-scatter",
                         figure=fig1,
-                        )
+                        )]),
+                            dbc.Col([
+                                dcc.Graph(
+                                    id="main-bar",
+                                    figure=fig2,
+                                )
+                            ])])
+
                 ])
             ], color = '#f4f4f4'),
             html.Br(),
             dbc.Card([
                 dbc.CardBody([
-                    dcc.Graph(
-                        id="main-bar",
-                        figure=fig2,
-                    )
+                    html.H5("Force @ 150ms overview:", className="card-title"),
+                    dbc.Row([dbc.Col([dcc.Graph(
+                        id="rfd-scatter",
+                    )]),
+                        dbc.Col([
+                            dcc.Graph(
+                                id="rfd-bar",
+                            )
+                        ])])
+
                 ])
             ], color='#f4f4f4')
         ],
@@ -114,58 +129,79 @@ def init_callbacks(dash_app):
             pro_options.append('Any')
         return pro_options
 
-    @callback(
-        Output('leg-fig1', 'options'),
-        Input('data-fig1', 'value')
-    )
-    def update_leg_1(dataVal):
-        if dataVal == 'Crush factor':
-            legOptions=['Both']
-        else:
-            legOptions=['Front leg', 'Back leg', 'Both']
-        return legOptions
-
 
     @callback(
-        Output('displayData', 'data'),
+        Output('main-scatter', 'figure'),
+        Output('main-bar', 'figure'),
+        Output('rfd-scatter', 'figure'),
+        Output('rfd-bar', 'figure'),
         Input('search', 'n_clicks'),
         State('org-id', 'value'),
         State('pro-id', 'value'))
     def create_df(n_click, org, pro):
         if n_click == None or (org == 'All' and pro == 'Any'):
-            displayData=df
+            displayData=df.reset_index()
         else:
             if org == 'All':
-                displayData = df.query(f"Protocol=='{pro}'")
-            elif pro == 'Any':
-                displayData=df.query(f"Org=='{org}'")
+                orgFilteredData = df
             else:
-                displayData=df.query(f"Org=='{org}' & Protocol=='{pro}'")
+                orgFilteredData = df.query(f"Org == '{org}'")
+            if pro == 'Any':
+                proFilteredData = orgFilteredData
+            else:
+                proFilteredData = orgFilteredData.query(f"Protocol == '{pro}'")
 
-        return displayData.to_json()
+            displayData= proFilteredData.reset_index()
 
-    @callback(
-        Output('main-scatter', 'figure'),
-        Output('main-bar', 'figure'),
-        Input('search', 'n_clicks'),
-        State('displayData', 'data'),
-        config_prevent_initial_callbacks=True
-    )
-    def update_figs(n_click, data):
+            sortDict = pb.create_dict(displayData)
 
-        filteredDf = pd.read_json(data)
-        filteredDf = filteredDf.reset_index()
-        fig1 = px.scatter(filteredDf, x='Left peak force', y="Right peak force",
-                          color=filteredDf['User'], hover_data=['Org', 'Protocol', 'TZ'], symbol=filteredDf['TZ'])
-        fig1.update_layout(yaxis_title="Right leg peak force (kg)", xaxis_title="Left leg peak force (kg)",
-                           yaxis_range=[-10, 150], xaxis_range=[-10, 150], xaxis_nticks=5,
-                           title_text="Combined peak force:", height=750)
+            plotDict1 = {}
+            plotDict2=  {}
+            for user in sortDict:
+                for protocol in sortDict[user]:
+                    for tz in sortDict[user][protocol]:
+                        for leg in sortDict[user][protocol][tz]:
+                            for data in sortDict[user][protocol][tz][leg]:
+                                if 'peak force' in data:
+                                    plotDict1[f"{user}, {tz}, {leg}, {data}"] = sortDict[user][protocol][tz][leg][data]
+                                elif '@ 150ms' in data:
+                                    plotDict2[f"{user}, {protocol}, {tz}, {leg}, {data}"] = sortDict[user][protocol][tz][leg][data]
 
-        fig2 = px.bar(filteredDf, y='Combined force @ 150ms', color='User', pattern_shape='TZ', hover_data=['Org', 'Protocol', 'User', 'TZ'])
-        fig2.update_layout(yaxis_title="Force @ 150ms (kg)", xaxis_title="",
-                           title_text="Combined force @ 150ms:", height=750)
+            fig1 = go.Figure()
+            for user in plotDict1:
+                fig1.add_trace(go.Bar(
+                    name=user,
+                    y=plotDict1[user]))
+            fig1.update_layout(yaxis_title="Peak force (kg)", xaxis_title="",
+                              title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=1000)
 
-        return fig1, fig2
+            fig2 = go.Figure()
+            for user in plotDict1:
+                fig2.add_trace(go.Scatter(
+                    name=user,
+                    y=plotDict1[user],
+                    mode='markers'))
+            fig2.update_layout(yaxis_title="Peak force (kg)", xaxis_title="",
+                               title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=1000)
+
+            fig3 = go.Figure()
+            for user in plotDict2:
+                fig3.add_trace(go.Bar(
+                    name=user,
+                    y=plotDict2[user]))
+            fig3.update_layout(yaxis_title="Force @ 150ms (kg)", xaxis_title="",
+                               title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=1000)
+
+            fig4 = go.Figure()
+            for user in plotDict2:
+                fig4.add_trace(go.Scatter(
+                    name=user,
+                    y=plotDict2[user],
+                    mode='markers'))
+            fig4.update_layout(yaxis_title="Force @ 150ms (kg)", xaxis_title="",
+                               title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=1000)
+
+        return fig2, fig1, fig4, fig3
 
 
 
