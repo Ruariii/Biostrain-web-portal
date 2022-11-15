@@ -1,7 +1,7 @@
-from flask import Flask, render_template, flash, request, redirect, url_for
+from flask import Flask, render_template, flash, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField
+from wtforms import StringField, SubmitField, PasswordField, SelectField
 from wtforms.validators import DataRequired
 from sqlalchemy import Table, create_engine
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
@@ -9,6 +9,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import os
 import pandas as pd
 from datetime import datetime
+import flask.json
+import json
 
 
 
@@ -49,10 +51,64 @@ class Login(db.Model, UserMixin):
     def __repr__(self):
         return '<User ID %r>' % self.id
 
+class Playerprofiles(db.Model, UserMixin):
+    Index = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
+    Org = db.Column(db.VARCHAR(45))
+    User = db.Column(db.VARCHAR(45))
+
+    def __repr__(self):
+        return '<User Index %r>' % self.Index
+
+#Create data model
+class Testdatalog(db.Model, UserMixin):
+    Index = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
+    Org = db.Column(db.Text)
+    User = db.Column(db.Text)
+    Timestamp = db.Column(db.DateTime)
+    Protocol = db.Column(db.Text)
+    TZ = db.Column(db.Text)
+    Left0ms = db.Column(db.Float)
+    Left50ms = db.Column(db.Float)
+    Left100ms = db.Column(db.Float)
+    Left150ms = db.Column(db.Float)
+    Left200ms = db.Column(db.Float)
+    Left250ms = db.Column(db.Float)
+    Left300ms = db.Column(db.Float)
+    Leftpeak = db.Column(db.Float)
+    Right0ms = db.Column(db.Float)
+    Right50ms = db.Column(db.Float)
+    Right100ms = db.Column(db.Float)
+    Right150ms = db.Column(db.Float)
+    Right200ms = db.Column(db.Float)
+    Right250ms = db.Column(db.Float)
+    Right300ms = db.Column(db.Float)
+    Rightpeak = db.Column(db.Float)
+    Combined0ms = db.Column(db.Float)
+    Combined50ms = db.Column(db.Float)
+    Combined100ms = db.Column(db.Float)
+    Combined150ms = db.Column(db.Float)
+    Combined200ms = db.Column(db.Float)
+    Combined250ms = db.Column(db.Float)
+    Combined300ms = db.Column(db.Float)
+    Combinedpeak = db.Column(db.Float)
+
+    def __repr__(self):
+        return '<User Index %r>' % self.Index
+
 class loginForm(FlaskForm):
     uname = StringField("Enter username", validators=[DataRequired()])
     pwd = PasswordField("Enter password", validators=[DataRequired()])
     submit = SubmitField("Login")
+
+class playerForm(FlaskForm):
+    squad = SelectField("Select squad", choices=['Liverpool', 'Lucid'], validators=[DataRequired()])
+    name = SelectField("Select player", choices=[], validators=[DataRequired()])
+    submit = SubmitField("Take me there")
+
+class squadForm(FlaskForm):
+    squad = SelectField("Select squad to view", choices=['Liverpool', 'Lucid'], validators=[DataRequired()])
+    pro = SelectField("Select protocol", choices=[], validators=[DataRequired()])
+    submit = SubmitField("Update figures")
 
 #Create routes (pages)
 # home page
@@ -92,23 +148,49 @@ def logout():
     flash("You have been logged out.")
     return redirect(url_for('home'))
 
-#data page
+#user hub page
 @app.route('/dashboard', methods=["GET", "POST"])
 @login_required
 def dashboard():
+    form = playerForm()
+    form.name.choices = [player.User for player in Playerprofiles.query.filter_by(Org='Liverpool').all()]
+    if request.method == "POST":
+        player = Playerprofiles.query.filter_by(User=form.name.data)
+        return redirect(url_for('player'))
+
+    return render_template('dashboard.html', form=form)
+
+@app.route('/squad', methods=["GET", "POST"])
+@login_required
+def squad():
     df = pd.read_csv('database.csv')
     userlist = df['User'].unique()
-    orglist = []
-    for user in userlist:
-        for i in range(len(df)):
-            if df['User'][i] == user:
-                orglist.append(df['Org'][i])
-                break
-    return render_template('dashboard.html', userlist=userlist, orglist=orglist, df=df)
+    orglist = df['Org'].unique()
+    prolist = df['Protocol'].unique()
+    return render_template('squad.html', userlist=userlist, orglist=orglist, df=df, prolist=prolist)
 
-@app.route('/data/<fname>+<sname>')
-def data(fname, sname):
-    return render_template('data.html', fname=fname, sname=sname)
+@app.route('/player', methods=["GET", "POST"])
+@login_required
+def player():
+
+    return render_template('player.html')
+
+
+@app.route('/player/<squad>')
+@login_required
+def playerSelect(squad):
+    players = Playerprofiles.query.filter_by(Org=squad).all()
+
+    playerArray=[]
+
+    for player in players:
+        playerObj = {}
+        playerObj['id']= player.Index
+        playerObj['name'] = player.User
+        playerArray.append(playerObj)
+
+
+    return jsonify({'players': playerArray})
 
 #Invalid URL
 @app.errorhandler(404)

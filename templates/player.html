@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Player Analysis</title>
+
+
+
+  </head>
+  <body>
+  <div>
+    {% for message in get_flashed_messages() %}
+
+      <div class="alert alert-dark alert-dismissible fade show" role="alert">
+        <strong>{{ message }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+    {% endfor %}
+    <br>
+  </div>
+  <h4> Player View: {{name}} </h4>
+
+  </div>
+
+{% endblock %}
+</body>
+</html>

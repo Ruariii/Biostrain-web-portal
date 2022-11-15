@@ -34,11 +34,11 @@ def init_dashboard(server):
         # search_params
         html.Br(), html.Br(), html.Br(),
         dbc.Col([dbc.Label("Select Squad/Group", html_for="org-id"),
-                dcc.Dropdown(orgList, value='All', id="org-id", style={"color": "black"})], className="d-grid gap-2 mx-auto"),
+                dcc.Dropdown(orgList, value='Lucid', id="org-id", style={"color": "black"})], className="d-grid gap-2 mx-auto"),
 
 
         dbc.Col([dbc.Label("Select Protocol", html_for="pro-id"),
-                dcc.Dropdown(proList, value='Any', id="pro-id", style={"color": "black"})], className="d-grid gap-2 mx-auto")
+                dcc.Dropdown(proList, value='Easy', id="pro-id", style={"color": "black"})], className="d-grid gap-2 mx-auto")
     ])
     # search + clear buttons
     searchclear = dbc.Row([
@@ -46,19 +46,6 @@ def init_dashboard(server):
         dbc.Col([dbc.Button("Reset", id='clear', color="light", size='md')],className="d-grid gap-2 mx-auto")
     ],
     )
-
-
-
-    fig1 = px.scatter(df2, x='Left peak force', y="Right peak force",
-                     color=df2['User'], hover_data=['Org', 'Protocol', 'TZ'], symbol=df2['TZ'])
-    fig1.update_layout(yaxis_title="Right leg peak force (kg)", xaxis_title="Left leg peak force (kg)",
-    yaxis_range=[-10,150], xaxis_range=[-10,150], xaxis_nticks=5,
-                      title_text="Combined peak force:", height=750)
-
-    fig2 = px.bar(df, y=(df['Combined force @ 150ms']), color='User', pattern_shape='TZ', hover_data=['Org', 'Protocol', 'User'])
-    fig2.update_layout(yaxis_title="Force @ 150ms (kg)",
-                       title_text="Combined force @ 150ms:", height=750)
-
 
     dash_app.layout = dbc.Form(
         children = [
@@ -76,12 +63,10 @@ def init_dashboard(server):
                     html.H5("Peak force overview:", className="card-title"),
                     dbc.Row([dbc.Col([dcc.Graph(
                         id="main-scatter",
-                        figure=fig1,
                         )]),
                             dbc.Col([
                                 dcc.Graph(
                                     id="main-bar",
-                                    figure=fig2,
                                 )
                             ])])
 
@@ -155,51 +140,152 @@ def init_callbacks(dash_app):
 
             sortDict = pb.create_dict(displayData)
 
-            plotDict1 = {}
-            plotDict2=  {}
+            plotDict1temp = {}
+            plotDict2temp=  {}
             for user in sortDict:
                 for protocol in sortDict[user]:
                     for tz in sortDict[user][protocol]:
                         for leg in sortDict[user][protocol][tz]:
                             for data in sortDict[user][protocol][tz][leg]:
                                 if 'peak force' in data:
-                                    plotDict1[f"{user}, {tz}, {leg}, {data}"] = sortDict[user][protocol][tz][leg][data]
-                                elif '@ 150ms' in data:
-                                    plotDict2[f"{user}, {protocol}, {tz}, {leg}, {data}"] = sortDict[user][protocol][tz][leg][data]
+                                    plotDict1temp[f"{user}, {tz}, {leg}, {data}"] = sortDict[user][protocol][tz][leg][data]
+                                elif '@ 150' in data:
+                                    plotDict2temp[f"{user}, {tz}, {leg}, {data}"] = sortDict[user][protocol][tz][leg][data]
+            plotDict1 = {k: v for k, v in plotDict1temp.items() if v}
+            plotDict2 = {k: v for k, v in plotDict2temp.items() if v}
+
+            keys1,keys2 = [],[]
+            for key in plotDict1:
+                keys1.append(key)
+            for key in plotDict2:
+                keys2.append(key)
+
+            blAsymy = [0, 300]
+            blAsymx = []
+            for i in range(len(blAsymy)):
+                blAsymx.append(blAsymy[i] * 1.3)
+
+
 
             fig1 = go.Figure()
             for user in plotDict1:
+                name = ''.join(user.split(',')[0:3])
                 fig1.add_trace(go.Bar(
-                    name=user,
-                    y=plotDict1[user]))
+                    name=''.join(user.split(',')[0:3]),
+                    y=plotDict1[user],
+                    hovertemplate=
+                    f"<b> {name} </b><br><br>" +
+                    "Peak force: %{y}kg<br>" +
+                    "<extra></extra>"
+                ))
             fig1.update_layout(yaxis_title="Peak force (kg)", xaxis_title="",
-                              title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=1000)
+                              title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=850)
 
             fig2 = go.Figure()
+            xPlot, yPlot = {}, {}
             for user in plotDict1:
+                if 'LHTZ, F' in user:
+                    xPlot[user] = plotDict1[user]
+                elif 'LHTZ, B' in user:
+                    yPlot[user] = plotDict1[user]
+                elif 'RHTZ, F' in user:
+                    xPlot[user] = plotDict1[user]
+                elif 'RHTZ, B' in user:
+                    yPlot[user] = plotDict1[user]
+            x = 0
+            while x <= len(plotDict1) - 1:
+                name = ''.join(keys1[x].split(',')[0:2])
                 fig2.add_trace(go.Scatter(
-                    name=user,
-                    y=plotDict1[user],
-                    mode='markers'))
-            fig2.update_layout(yaxis_title="Peak force (kg)", xaxis_title="",
-                               title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=1000)
+                    x=xPlot[keys1[x]],
+                    y=yPlot[keys1[x + 1]],
+                    mode='markers',
+                    name=keys1[x],
+                    hovertemplate=
+                    f"<b> {name} </b><br><br>" +
+                    "Front leg peak force: %{x}kg<br>" +
+                    "Back leg peak force: %{y}kg<br>" +
+                    "<extra></extra>", )
+                )
+                x += 2
+            fig2.add_trace(go.Scatter(
+                x=blAsymx,
+                y=blAsymy,
+                name='30% asymmetry FL/BL',
+                line={
+                    'color': 'black',
+                    'dash': 'dash'
+                }))
+            fig2.add_trace(go.Scatter(
+                y=blAsymx,
+                x=blAsymy,
+                name='30% asymmetry BL/FL',
+                line={
+                    'color': 'black',
+                    'dash': 'dash'
+                }))
+            fig2.update_layout(yaxis_title="Back leg peak force (kg)", xaxis_title="Front leg peak force (kg)",
+                               title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=850,
+                               yaxis_range=[-5,120], xaxis_range=[-5,120])
 
             fig3 = go.Figure()
             for user in plotDict2:
+                name = ''.join(user.split(',')[0:3])
                 fig3.add_trace(go.Bar(
-                    name=user,
-                    y=plotDict2[user]))
+                    name=''.join(user.split(',')[0:3]),
+                    y=plotDict2[user],
+                    hovertemplate=
+                    f"<b> {name} </b><br><br>" +
+                    "Force @ 150ms: %{y}kg<br>" +
+                    "<extra></extra>"
+                ))
             fig3.update_layout(yaxis_title="Force @ 150ms (kg)", xaxis_title="",
-                               title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=1000)
+                               title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=850)
 
             fig4 = go.Figure()
+            xPlot, yPlot = {}, {}
             for user in plotDict2:
+                if 'LHTZ, F' in user:
+                    xPlot[user] = plotDict2[user]
+                elif 'LHTZ, B' in user:
+                    yPlot[user] = plotDict2[user]
+                elif 'RHTZ, F' in user:
+                    xPlot[user] = plotDict2[user]
+                elif 'RHTZ, B' in user:
+                    yPlot[user] = plotDict2[user]
+            x = 0
+            while x <= len(plotDict2) - 1:
+                name = ''.join(keys2[x].split(',')[0:2])
                 fig4.add_trace(go.Scatter(
-                    name=user,
-                    y=plotDict2[user],
-                    mode='markers'))
-            fig4.update_layout(yaxis_title="Force @ 150ms (kg)", xaxis_title="",
-                               title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=1000)
+                    x=xPlot[keys2[x]],
+                    y=yPlot[keys2[x + 1]],
+                    mode='markers',
+                    name=keys2[x],
+                    hovertemplate=
+                    f"<b> {name} </b><br><br>" +
+                    "Front leg peak force: %{x}kg<br>" +
+                    "Back leg peak force: %{y}kg<br>" +
+                    "<extra></extra>", )
+                )
+                x += 2
+            fig4.add_trace(go.Scatter(
+                x=blAsymx,
+                y=blAsymy,
+                name='30% asymmetry FL/BL',
+                line={
+                    'color': 'black',
+                    'dash': 'dash'
+                }))
+            fig4.add_trace(go.Scatter(
+                y=blAsymx,
+                x=blAsymy,
+                name='30% asymmetry BL/FL',
+                line={
+                    'color': 'black',
+                    'dash': 'dash'
+                }))
+            fig4.update_layout(yaxis_title="Back leg peak force (kg)", xaxis_title="Front leg peak force (kg)",
+                               title_text=f"Data: Peak force, Squad: {org}, Protocol: {pro}", height=850,
+                               yaxis_range=[-5,120], xaxis_range=[-5,120])
 
         return fig2, fig1, fig4, fig3
 
@@ -212,4 +298,6 @@ def init_callbacks(dash_app):
         Input('clear', 'n_clicks')
         )
     def clearInps(clear_click):
-        return "All", "Any"
+        if clear_click > 0:
+
+            return "All", "Any"

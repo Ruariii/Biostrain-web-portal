@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Squad Analysis</title>
+
+
+
+  </head>
+  <body>
+  <div>
+    {% for message in get_flashed_messages() %}
+
+      <div class="alert alert-dark alert-dismissible fade show" role="alert">
+        <strong>{{ message }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+    {% endfor %}
+    <br>
+  </div>
+  <h4> {{current_user.username|capitalize}} Squad View </h4>
+  <br><br>
+  <div class="card text-center">
+  <div class="card-header text-muted" style="text-align:left">
+    {{current_user.username|capitalize}} squad view: </div>
+  <div class="card-body">
+    <form method="post" action="/dashboard.html">
+    <div class="input-group mb-4">
+    <label class="input-group-text" for="orgSelect">Select squad to view: </label>
+    <select class="form-select" id="orgSelect">
+      {% for i in orglist %}
+        <option><a class="dropdown-item" href="#">{{i}}</a></option>
+      {% endfor %}
+    </select>
+    </div>
+    <div class="input-group mb-4">
+    <label class="input-group-text" for="proSelect">Select protocol: </label>
+    <select class="form-select" id="proSelect">
+      {% for i in range(df|length)%}
+        {% if df['Org'][i] == orgSelect %}
+          <option><a class="dropdown-item" href="#">{{df['Protocol'][i]}}</a></option>
+        {% endif %}
+      {% endfor %}
+    </select>
+    </div>
+    </form>
+  </div>
+  <div class="card-footer text-muted" style="text-align:left">
+    Today
+  </div>
+  </div>
+
+  </body>
+{% endblock %}
+</html>
