@@ -5,6 +5,7 @@
   <head>
       <meta charset="UTF-8">
       <title>Player Analysis</title>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
 
 
 
@@ -22,8 +23,42 @@
     <br>
   </div>
   <h4> Player View: {{name}} </h4>
-
+  <hr>
+  <br>
+  <div class="card">
+  <h5 class="card-header">Featured</h5>
+  <div class="card-body">
+    <h5 class="card-title">Baseline tests: performance overview</h5>
+    <p class="card-text">Baseline protocols allow us to monitor your performance when fresh and give insights into your absolute performance capabilities as well as your performance potential.</p>
+    <canvas id="barChart" width="900" height="500"></canvas>
   </div>
+</div>
+
+
+
+    <script>
+      new Chart(document.getElementById("barChart"), {
+      type: 'bar',
+      data: {
+        labels: {{ label | safe }},
+        datasets: [
+          {
+            label: "Score (kg)",
+            data: {{ score | safe }}
+          }
+        ]
+      },
+      options: {
+        legend: { display: true },
+        title: {
+          display: true,
+          text: 'Baseline protocols: performance overview'
+        }
+      }
+  });
+    </script>
+
+
 
 {% endblock %}
 </body>

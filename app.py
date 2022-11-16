@@ -1,5 +1,7 @@
+import MySQLdb.cursors
 from flask import Flask, render_template, flash, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_mysqldb import MySQL,MySQLdb
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, SelectField
 from wtforms.validators import DataRequired
@@ -8,6 +10,8 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, log
 from werkzeug.security import check_password_hash, generate_password_hash
 import os
 import pandas as pd
+import PBI_python_module as pb
+import numpy as np
 from datetime import datetime
 import flask.json
 import json
@@ -154,9 +158,26 @@ def logout():
 def dashboard():
     form = playerForm()
     form.name.choices = [player.User for player in Playerprofiles.query.filter_by(Org='Liverpool').all()]
+
     if request.method == "POST":
-        player = Playerprofiles.query.filter_by(User=form.name.data)
-        return redirect(url_for('player'))
+        name = request.form['name']
+        playerTestData = Testdatalog.query.filter_by(User=name)
+        baselineMax, fatigueMax = pb.playerPlot(playerTestData)
+        index = [row[0] for row in baselineMax]
+        protocol = [row[1] for row in baselineMax]
+        label = [row[2] for row in baselineMax]
+        score = [row[3] for row in baselineMax]
+        tz = [row[4] for row in baselineMax]
+        timestamp = [row[5] for row in baselineMax]
+
+        return render_template('player.html',
+                               name=name,
+                               index=index,
+                               protocol=protocol,
+                               label=label,
+                               score=score,
+                               tz=tz,
+                               timestamp=timestamp)
 
     return render_template('dashboard.html', form=form)
 
@@ -172,6 +193,8 @@ def squad():
 @app.route('/player', methods=["GET", "POST"])
 @login_required
 def player():
+    user = request.playerForm['name']
+
 
     return render_template('player.html')
 
@@ -185,12 +208,12 @@ def playerSelect(squad):
 
     for player in players:
         playerObj = {}
-        playerObj['id']= player.Index
+        playerObj['id'] = player.Index
         playerObj['name'] = player.User
         playerArray.append(playerObj)
 
 
-    return jsonify({'players': playerArray})
+    return jsonify({'players' : playerArray})
 
 #Invalid URL
 @app.errorhandler(404)

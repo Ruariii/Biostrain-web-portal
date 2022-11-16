@@ -533,3 +533,86 @@ def create_dict(df):
                                         if 'Left' in data:
                                             plotDict[user][protocol][tz][leg][data].append(fildf[data][i])
     return plotDict
+
+
+
+def playerPlot(playerTestData):
+    cols = ["Index", "Org", "User", "Timestamp", "Protocol", "TZ", "Left0ms", "Left50ms", "Left100ms", "Left150ms",
+            "Left200ms", "Left250ms", "Left300ms", "Leftpeak", "Right0ms", "Right50ms", "Right100ms", "Right150ms",
+            "Right200ms", "Right250ms", "Right300ms", "Rightpeak", "Combined0ms", "Combined50ms", "Combined100ms",
+            "Combined150ms", "Combined200ms", "Combined250ms", "Combined300ms", "Combinedpeak"]
+
+    # get dataArray - all tests
+    dataArray = []
+    for i in playerTestData:
+        for col in cols:
+            dataArray.append((i.Index, i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
+                             i.Left0ms, i.Left50ms, i.Left100ms,
+                             i.Left150ms, i.Left200ms, i.Left250ms,
+                             i.Left300ms, i.Leftpeak, i.Right0ms,
+                             i.Right50ms, i.Right100ms, i.Right150ms,
+                             i.Right200ms, i.Right250ms, i.Right300ms,
+                             i.Rightpeak, i.Combined0ms, i.Combined50ms,
+                             i.Combined100ms, i.Combined150ms, i.Combined200ms,
+                             i.Combined250ms, i.Combined300ms, i.Combinedpeak))
+
+    # split into baseline & fatigue tests based on protocol name
+    baselineTests, fatigueTests = [], []
+    # create dictionary objects
+    baselineDict, fatigueDict = {}, {}
+    for row in dataArray:
+        if "sprint" in row[4] or "fatigue" in row[4] or "Sprint" in row[4] or "Fatigue" in row[4]:
+            fatigueTests.append(row)
+            fatigueDict[row[4]] = {}
+            # add keys to dicts
+            for col in cols:
+                fatigueDict[row[4]][col] = []
+
+        else:
+            baselineTests.append(row)
+            baselineDict[row[4]] = {}
+            # add keys to dicts
+            for col in cols:
+                baselineDict[row[4]][col] = []
+    # populate dicts
+    for row in dataArray:
+        if "sprint" in row[4] or "fatigue" in row[4] or "Sprint" in row[4] or "Fatigue" in row[4]:
+            for i in range(len(cols)):
+                fatigueDict[row[4]][cols[i]].append(row[i])
+        else:
+            for i in range(len(cols)):
+                baselineDict[row[4]][cols[i]].append(row[i])
+
+    # BASELINE - get best scores from each protocol
+    baselineMax = []
+    count = 1
+    for protocol in baselineDict:
+        for key in baselineDict[protocol]:
+            if "150" in key or "peak" in key:
+                maxval = max(baselineDict[protocol][key])
+                maxidx = np.argmax(baselineDict[protocol][key])
+                maxvaltz = baselineDict[protocol]['TZ'][maxidx]
+                maxvaltime = baselineDict[protocol]['Timestamp'][maxidx]
+
+                baselineMax.append((count, protocol, key, maxval, maxvaltz, maxvaltime))
+            else:
+                continue
+        count += 1
+
+    # FATIGUE - get best scores from each protocol (may be some other metrics from fatigue tests)
+    fatigueMax = []
+    count = 1
+    for protocol in fatigueDict:
+        for key in fatigueDict[protocol]:
+            if "150" in key or "peak" in key:
+                maxval = max(fatigueDict[protocol][key])
+                maxidx = np.argmax(fatigueDict[protocol][key])
+                maxvaltz = fatigueDict[protocol]['TZ'][maxidx]
+                maxvaltime = fatigueDict[protocol]['Timestamp'][maxidx]
+
+                fatigueMax.append((count, protocol, key, maxval, maxvaltz, maxvaltime))
+            else:
+                continue
+        count += 1
+
+    return baselineMax, fatigueMax

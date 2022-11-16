@@ -25,20 +25,18 @@
   <br><br>
   <div class="card text-center">
   <div class="card-header text-muted" style="text-align:left">
-    {{current_user.username|capitalize}} squad view: </div>
+    Squad view: </div>
   <div class="card-body">
     <h5 class="card-title">View organisation</h5>
     <p class="card-text">Observe performance across all squads</p>
     <a href="/squad" class="btn btn-secondary">Take me there</a>
   </div>
-  <div class="card-footer text-muted" style="text-align:left">
-    Today
-  </div>
+
 </div>
 <br><br>
     <div class="card text-center">
   <div class="card-header text-muted" style="text-align:left">
-    {{current_user.username|capitalize}} focussed view: </div>
+    Player view: </div>
   <div class="card-body">
     <h5 class="card-title">View player profiles</h5>
     <p class="card-text">Select a player to view detailed performance analysis</p>
@@ -48,11 +46,11 @@
     <div class="shadow p-3 mb-5 bg-body rounded">
       <form method="POST">
         {{ form.csrf_token }}
-        {{ form.hidden_tag() }}
+
 
         {{ form.squad.label(class="form-label") }}
         {{ form.squad(class="form-control") }}
-
+        <br>
         {{ form.name.label(class="form-label") }}
         {{ form.name(class="form-control") }}
 
@@ -63,7 +61,7 @@
 
       <script>
         var squad_select = document.getElementById("squad");
-        var player_select = document.getElementById("player");
+        var player_select = document.getElementById("name");
 
         squad_select.onchange = function()  {
 
@@ -75,7 +73,7 @@
                     var optionHTML = '';
 
                     for (var player of data.players) {
-                        optionHTML += '<option value="' + player.id + '">' + player.name + '</option>';
+                        optionHTML += '<option>' + player.name + '</option>';
                     }
 
                     player_select.innerHTML = optionHTML;
@@ -88,10 +86,7 @@
     </div>
 
   </div>
-  <br>
 
-  <div class="card-footer text-muted" style="text-align:left">
-    Today
   </div>
 
   </body>
