@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Player Analysis</title>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
+
+
+
+  </head>
+  <body>
+  <div>
+    {% for message in get_flashed_messages() %}
+
+      <div class="alert alert-dark alert-dismissible fade show" role="alert">
+        <strong>{{ message }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+    {% endfor %}
+    <br>
+  </div>
+  <h4> Player View: {{name}} </h4>
+  <hr>
+  <br>
+  <div class="card">
+  <h5 class="card-header">Featured</h5>
+  <div class="card-body">
+    <h5 class="card-title">Activity log</h5>
+    <p class="card-text">Monitor your activity on the Biostrain system.</p>
+    <canvas id="activityChart" width="900" height="500"></canvas>
+  </div>
+  <div class="card">
+  <h5 class="card-header">Featured</h5>
+  <div class="card-body">
+    <h5 class="card-title">Baseline tests: performance overview</h5>
+    <p class="card-text">Baseline protocols allow us to monitor your performance when fresh and give insights into your absolute performance capabilities as well as your performance potential.</p>
+    <canvas id="barChart" width="900" height="500"></canvas>
+  </div>
+  </div>
+</div>
+
+
+    <script>
+
+      new Chart(document.getElementById("barChart"), {
+      type: "bar",
+      data: {
+          labels: {{ label[0:6]|safe }},
+          datasets: [
+              {
+                  label: '{{ protocol[0]|safe }}',
+                  backgroundColor: 'rgba(99, 132, 0, 8)',
+                  borderColor: 'black',
+                  data: {{score[0:6]}}
+              },
+              {
+                  label: '{{ protocol[6]|safe }}',
+                  backgroundColor: 'rgba(99, 132, 0, 0.75)',
+                  borderColor: 'black',
+                  data: {{score[6:12]}}
+              },
+              {
+                  label: '{{ protocol[12]|safe }}',
+                  backgroundColor: 'rgba(99, 132, 0, 0.5)',
+                  borderColor: 'black',
+                  data: {{score[12:18]}}
+              }
+          ]
+      }
+  });
+    </script>
+
+    <script>
+
+      new Chart(document.getElementById("activityChart"), {
+      type: "bar",
+      data: {
+          labels: ['{{ timestamp[0]|safe }}','{{ timestamp[6]|safe }}','{{ timestamp[12]|safe }}'],
+          datasets: [
+              {
+                  label: 'Tests completed',
+                  data: [4, 4, 4]
+              }
+          ]
+      }
+  });
+    </script>
+
+
+
+{% endblock %}
+</body>
+</html>

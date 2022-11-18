@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Login account</title>
+
+
+
+  </head>
+  <body>
+  <div>
+    {% for message in get_flashed_messages() %}
+
+      <div class="alert alert-dark alert-dismissible fade show" role="alert">
+        <strong>{{ message }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+    {% endfor %}
+    <br>
+  </div>
+  {% if submit %}
+    <h4> Welcome {{uname}}! </h4>
+  {% else %}
+    <h4> Login to your account </h4>
+    <br>
+    <div class="shadow p-3 mb-5 bg-body rounded">
+      <form method="POST">
+        {{ form.hidden_tag() }}
+
+        {{ form.uname.label(class="form-label") }}
+        {{ form.uname(class="form-control") }}
+
+        {{ form.pwd.label(class="form-label") }}
+        {{ form.pwd(class="form-control") }}
+        <br>
+        {{ form.submit(class="btn btn-secondary")}}
+
+      </form>
+
+    </div>
+  {% endif %}
+  </body>
+{% endblock %}
+</html>

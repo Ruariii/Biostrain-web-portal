@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Dashboard</title>
+
+
+
+  </head>
+  <body>
+  <div>
+    {% for message in get_flashed_messages() %}
+
+      <div class="alert alert-dark alert-dismissible fade show" role="alert">
+        <strong>{{ message }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+    {% endfor %}
+    <br>
+  </div>
+  <h4> {{current_user.username|capitalize}} Dashboard </h4>
+  <br><br>
+  <div class="card text-center">
+  <div class="card-header text-muted" style="text-align:left">
+    Squad view: </div>
+  <div class="card-body">
+    <h5 class="card-title">View organisation</h5>
+    <p class="card-text">Observe performance across all squads</p>
+    <a href="/squad" class="btn btn-secondary">Take me there</a>
+  </div>
+
+</div>
+<br><br>
+    <div class="card text-center">
+  <div class="card-header text-muted" style="text-align:left">
+    Player view: </div>
+  <div class="card-body">
+    <h5 class="card-title">View player profiles</h5>
+    <p class="card-text">Select a player to view detailed performance analysis</p>
+    <br>
+
+
+    <div class="shadow p-3 mb-5 bg-body rounded">
+      <form method="POST">
+        {{ form.csrf_token }}
+
+
+        {{ form.squad.label(class="form-label") }}
+        {{ form.squad(class="form-control") }}
+        <br>
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control") }}
+
+        <br>
+        {{ form.submit(class="btn btn-secondary")}}
+
+      </form>
+
+      <script>
+        var squad_select = document.getElementById("squad");
+        var player_select = document.getElementById("name");
+
+        squad_select.onchange = function()  {
+
+            squad = squad_select.value;
+
+            fetch('/player/' + squad).then(function(response) {
+
+                response.json().then(function(data) {
+                    var optionHTML = '';
+
+                    for (var player of data.players) {
+                        optionHTML += '<option>' + player.name + '</option>';
+                    }
+
+                    player_select.innerHTML = optionHTML;
+                })
+
+            });
+        }
+    </script>
+
+    </div>
+
+  </div>
+
+  </div>
+
+  </body>
+{% endblock %}
+</html>
