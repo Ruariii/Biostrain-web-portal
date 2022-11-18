@@ -32,15 +32,24 @@
     <p class="card-text">Monitor your activity on the Biostrain system.</p>
     <canvas id="activityChart" width="900" height="500"></canvas>
   </div>
+  </div>
+  <br><br>
   <div class="card">
   <h5 class="card-header">Featured</h5>
   <div class="card-body">
     <h5 class="card-title">Baseline tests: performance overview</h5>
     <p class="card-text">Baseline protocols allow us to monitor your performance when fresh and give insights into your absolute performance capabilities as well as your performance potential.</p>
     <canvas id="barChart" width="900" height="500"></canvas>
+    <br>
+    <hr>
+    <br>
+    <h5 class="card-title">Baseline tests: left vs right transition zones</h5>
+    <p class="card-text">Compare left vs right transition zones from baseline protocols to identify what your performance is limited by.</p>
+    <canvas id="radarChart" width="900" height="500"></canvas>
+
   </div>
   </div>
-</div>
+
 
 
     <script>
@@ -69,25 +78,85 @@
                   data: {{score[12:18]}}
               }
           ]
+      },
+      options: {
+        scales: {
+            y:{
+              min:0,
+              max:400,
+              text: 'Force (kg)'
+            }
+        }
       }
   });
     </script>
 
     <script>
+      const labels = {{ timeArray|safe }}
+      const data = {
+        labels: labels,
+        datasets: [{
+          label: 'Tests completed',
+          data: {{ countArray|safe }},
+          fill: true,
+          borderColor: 'rgb(100, 75, 185)',
+          tension: 0.5
+        }]
+      }
 
       new Chart(document.getElementById("activityChart"), {
-      type: "bar",
-      data: {
-          labels: ['{{ timestamp[0]|safe }}','{{ timestamp[6]|safe }}','{{ timestamp[12]|safe }}'],
-          datasets: [
-              {
-                  label: 'Tests completed',
-                  data: [4, 4, 4]
-              }
-          ]
-      }
-  });
+          type: "line",
+          data: data,
+          options: {
+            scales: {
+                y:{
+                  min:0,
+                  max:20,
+                }
+            }
+          }
+      });
     </script>
+    <script>
+
+  new Chart(document.getElementById("radarChart"),{
+   type: 'radar',
+  data: {
+  labels: {{ radarLabels|safe }},
+  datasets: [{
+    label: 'LHTZ',
+    data: {{ specificRadarL|safe }},
+    fill: true,
+    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+    borderColor: 'rgb(255, 99, 132)',
+    pointBackgroundColor: 'rgb(255, 99, 132)',
+    pointBorderColor: '#fff',
+    pointHoverBackgroundColor: '#fff',
+    pointHoverBorderColor: 'rgb(255, 99, 132)'
+  }, {
+    label: 'RHTZ',
+    data: {{ specificRadarR|safe }},
+    fill: true,
+    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+    borderColor: 'rgb(54, 162, 235)',
+    pointBackgroundColor: 'rgb(54, 162, 235)',
+    pointBorderColor: '#fff',
+    pointHoverBackgroundColor: '#fff',
+    pointHoverBorderColor: 'rgb(54, 162, 235)'
+  }]
+},
+  options: {
+    elements: {
+      line: {
+        borderWidth: 3
+      }
+    }
+  },
+});
+
+    </script>
+
+
 
 
 

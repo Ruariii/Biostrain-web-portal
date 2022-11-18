@@ -536,7 +536,7 @@ def create_dict(df):
 
 
 
-def playerPlot(playerTestData):
+def playerPlot(playerTestData, name):
     cols = ["Index", "Org", "User", "Timestamp", "Protocol", "TZ", "Left0ms", "Left50ms", "Left100ms", "Left150ms",
             "Left200ms", "Left250ms", "Left300ms", "Leftpeak", "Right0ms", "Right50ms", "Right100ms", "Right150ms",
             "Right200ms", "Right250ms", "Right300ms", "Rightpeak", "Combined0ms", "Combined50ms", "Combined100ms",
@@ -615,4 +615,65 @@ def playerPlot(playerTestData):
                 continue
         count += 1
 
-    return baselineMax, fatigueMax
+    activityLog = {name: {}}
+    for row in dataArray:
+        activityLog[name][row[3]] = {}
+        activityLog[name][row[3]]['protocol'] = []
+        activityLog[name][row[3]]['count'] = []
+    for key in activityLog[name]:
+        counter = 0
+        for row in dataArray:
+            if row[3] == key:
+                counter += 1
+                pro = row[4]
+            else:
+                continue
+        activityLog[name][key]['count']=counter
+        activityLog[name][key]['protocol']=pro
+
+    timeArray=[time for time in activityLog[name]]
+    countArray, proArray = [], []
+    for time in timeArray:
+        countArray.append(activityLog[name][time]['count']/30)
+        proArray.append(activityLog[name][time]['protocol'])
+
+    LHTZdata, RHTZdata = [], []
+    for row in baselineTests:
+        if row[5] == 'LHTZ':
+            LHTZdata.append(row)
+        else:
+            RHTZdata.append(row)
+    front150L, frontPeakL, back150L, backPeakL, combined150L, combinedPeakL = 0, 0, 0, 0, 0, 0
+    front150R, frontPeakR, back150R, backPeakR, combined150R, combinedPeakR = 0, 0, 0, 0, 0, 0
+    radarLabels = ['Front force at 150ms', 'Front peak force', 'Back force at 150ms', 'Back peak force',
+                   'Combined force at 150ms', 'Combined peak force']
+    for row in LHTZdata:
+        if row[9] > front150L:
+            front150L = row[9]
+        elif row[13] > frontPeakL:
+            frontPeakL = row[13]
+        elif row[17] > back150L:
+            back150L = row[17]
+        elif row[21] > backPeakL:
+            backPeakL = row[21]
+        elif row[25] > combined150L:
+            combined150L = row[25]
+        elif row[29] > combinedPeakL:
+            combinedPeakL = row[29]
+    radarDataL = [front150L, frontPeakL, back150L, backPeakL, combined150L, combinedPeakL]
+    for row in RHTZdata:
+        if row[9] > back150R:
+            back150R = row[9]
+        elif row[13] > backPeakR:
+            backPeakR = row[13]
+        elif row[17] > front150R:
+            front150R = row[17]
+        elif row[21] > frontPeakR:
+            frontPeakR = row[21]
+        elif row[25] > combined150R:
+            combined150R = row[25]
+        elif row[29] > combinedPeakR:
+            combinedPeakR = row[29]
+    radarDataR = [front150R, frontPeakR, back150R, backPeakR, combined150R, combinedPeakR]
+
+    return baselineMax, fatigueMax, timeArray, countArray, proArray, radarLabels, radarDataL, radarDataR

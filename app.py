@@ -57,6 +57,9 @@ class Playerprofiles(db.Model, UserMixin):
     Index = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
     Org = db.Column(db.VARCHAR(45))
     User = db.Column(db.VARCHAR(45))
+    Gender = db.Column(db.VARCHAR(1))
+    Weight = db.Column(db.Float)
+    Height = db.Column(db.Float)
 
     def __repr__(self):
         return '<User Index %r>' % self.Index
@@ -160,27 +163,19 @@ def dashboard():
     if request.method == "POST":
         name = request.form['name']
         playerTestData = Testdatalog.query.filter_by(User=name)
-        baselineMax, fatigueMax = pb.playerPlot(playerTestData)
+        user = Playerprofiles.query.filter_by(User=name).first()
+        height = user.Height
+        weight = user.Weight
+        baselineMax, fatigueMax, timeArray, countArray, proArray, radarLabels, radarDataL, radarDataR = pb.playerPlot(playerTestData, name)
         index = [row[0] for row in baselineMax]
         protocol = [row[1] for row in baselineMax]
         label = [row[2] for row in baselineMax]
         score = [row[3] for row in baselineMax]
         tz = [row[4] for row in baselineMax]
         timestamp = [row[5] for row in baselineMax]
-
-        barDict = {}
-        for pro in protocol:
-            barDict[pro]={}
-        for pro in barDict:
-            for type in label:
-                barDict[pro][type]=[]
-
-        for i in range(len(score)):
-            for pro in barDict:
-                for type in barDict[pro]:
-                    if protocol[i] == pro:
-                        if label[i] == type:
-                            barDict[pro][type].append(score[i])
+        specificScore = [100*(force/weight) for force in score]
+        specificRadarL = [100 * (force / weight) for force in radarDataL]
+        specificRadarR = [100 * (force / weight) for force in radarDataR]
 
         return render_template('player.html',
                                name=name,
@@ -190,7 +185,13 @@ def dashboard():
                                score=score,
                                tz=tz,
                                timestamp=timestamp,
-                               barDict = barDict)
+                               timeArray=timeArray,
+                               countArray=countArray,
+                               proArray=proArray,
+                               specificScore=specificScore,
+                               radarLabels=radarLabels,
+                               specificRadarL=specificRadarL,
+                               specificRadarR=specificRadarR)
 
     return render_template('dashboard.html', form=form)
 
