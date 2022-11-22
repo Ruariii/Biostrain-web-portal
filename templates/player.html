@@ -26,7 +26,7 @@
   <hr>
   <br>
   <div class="card">
-  <h5 class="card-header">Featured</h5>
+  <h5 class="card-header">Featured: user activity</h5>
   <div class="card-body">
     <h5 class="card-title">Activity log</h5>
     <p class="card-text">Monitor your activity on the Biostrain system.</p>
@@ -35,18 +35,34 @@
   </div>
   <br><br>
   <div class="card">
-  <h5 class="card-header">Featured</h5>
+  <h5 class="card-header">Featured: baseline protocols</h5>
   <div class="card-body">
-    <h5 class="card-title">Baseline tests: performance overview</h5>
+    <h5 class="card-title">Baseline protocols: performance overview</h5>
     <p class="card-text">Baseline protocols allow us to monitor your performance when fresh and give insights into your absolute performance capabilities as well as your performance potential.</p>
     <canvas id="barChart" width="900" height="500"></canvas>
     <br>
     <hr>
     <br>
-    <h5 class="card-title">Baseline tests: left vs right transition zones</h5>
+    <h5 class="card-title">Baseline protocols: left vs right transition zones</h5>
     <p class="card-text">Compare left vs right transition zones from baseline protocols to identify what your performance is limited by.</p>
     <canvas id="radarChart" width="900" height="500"></canvas>
-
+  </div>
+  </div>
+  <br><br>
+  <div class="card">
+  <h5 class="card-header">Featured: fatigue protocols</h5>
+  <div class="card-body">
+    <h5 class="card-title">Fatigue protocols: fresh vs fatigued</h5>
+    <p class="card-text">Fatigue protocols are designed to investigate how your performance breaks down when you become fatigued, this can help set limits for training intensity and inform decisions about recovery.
+    Becoming fatigued impacts your ability to generate force rapidly. The solid lines represent your maximum (fresh) capability, while the dashed lines represent your best efforts in a fatigued state.
+    </p>
+    <canvas id="fatigueLineChart" width="900" height="500"></canvas>
+    <br>
+    <hr>
+    <br>
+    <h5 class="card-title">Fatigue protocols: asymmetry</h5>
+    <p class="card-text">Compare left vs right transition zones from fatigue protocols to identify limiting factors in fatigued performance.</p>
+    <canvas id="fatigueChart2" width="900" height="500"></canvas>
   </div>
   </div>
 
@@ -92,15 +108,15 @@
     </script>
 
     <script>
-      const labels = {{ timeArray|safe }}
+      const labels = {{ timeExt|safe }}
       const data = {
         labels: labels,
         datasets: [{
           label: 'Tests completed',
-          data: {{ countArray|safe }},
+          data: {{ countExt|safe }},
           fill: true,
           borderColor: 'rgb(100, 75, 185)',
-          tension: 0.5
+          tension: 0.05
         }]
       }
 
@@ -155,6 +171,53 @@
 });
 
     </script>
+  <script>
+  var plotObj = {{ fPlotDict|safe }}
+  var labelObj = {{ fLabelDict|safe }}
+  var colors = ['#00FFFF','#00FFFF', '#00FFFF','#00FFFF', '#FFA500','#FFA500', '#FFA500','#FFA500', '#FF00FF','#FF00FF',
+                '#FF00FF','#FF00FF', '#0000FF','#0000FF', '#0000FF','#0000FF', '#008000','#008000', '#008000','#008000',
+                '#FF0000','#FF0000', '#FF0000','#FF0000', '#20B2AA','#20B2AA', '#20B2AA','#20B2AA', '#046307','#046307',
+                '#046307','#046307', '#FFEF00','#FFEF00', '#FFEF00','#FFEF00', '#5C3317','#5C3317', '#5C3317','#5C3317',
+                '#FF6700','#FF6700', '#FF6700','#FF6700', '#931314','#931314', '#931314','#931314', '#DB7093','#DB7093',
+                '#DB7093','#DB7093', '#583759','#583759', '#583759','#583759', '#E30B5D','#E30B5D', '#E30B5D','#E30B5D']
+
+  var dash = [0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5,
+              0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5,
+              0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5,
+              0,10, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5,
+              0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5]
+
+  const labels2 = ['0ms','50ms','100ms','150ms','200ms','250ms','300ms']
+  var datasetdata = [];
+  var j = 2;
+  var k = 3;
+  for (var i = 0; i < {{ fPlotDict|length }}; i++) {
+    datasetdata[i] = {
+      label: labelObj[i],
+      data: plotObj[i],
+      borderColor: colors[i],
+      borderDash: [10,dash[i]],
+      tension: 0.05
+    }
+  }
+
+  const data2 = {
+    labels: labels2,
+    datasets: datasetdata
+  }
+
+  new Chart(document.getElementById("fatigueLineChart"), {
+      type: "line",
+      data: data2,
+      options: {
+        scales: {
+            y:{
+              min:0,
+            }
+        }
+      }
+  });
+  </script>
 
 
 

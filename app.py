@@ -166,7 +166,7 @@ def dashboard():
         user = Playerprofiles.query.filter_by(User=name).first()
         height = user.Height
         weight = user.Weight
-        baselineMax, fatigueMax, timeArray, countArray, proArray, radarLabels, radarDataL, radarDataR = pb.playerPlot(playerTestData, name)
+        baselineMax, fatigueMax, timeArray, countArray, timeExt, countExt, proArray, radarLabels, radarDataL, radarDataR, fPlotDict, fLabelDict = pb.playerPlot(playerTestData, name)
         index = [row[0] for row in baselineMax]
         protocol = [row[1] for row in baselineMax]
         label = [row[2] for row in baselineMax]
@@ -191,7 +191,11 @@ def dashboard():
                                specificScore=specificScore,
                                radarLabels=radarLabels,
                                specificRadarL=specificRadarL,
-                               specificRadarR=specificRadarR)
+                               specificRadarR=specificRadarR,
+                               timeExt=timeExt,
+                               countExt=countExt,
+                               fPlotDict=fPlotDict,
+                               fLabelDict=fLabelDict)
 
     return render_template('dashboard.html', form=form)
 

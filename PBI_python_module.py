@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import statistics as st
 import os
-from datetime import datetime
+import datetime
 
 ####################################################################################################
 
@@ -637,6 +637,22 @@ def playerPlot(playerTestData, name):
         countArray.append(activityLog[name][time]['count']/30)
         proArray.append(activityLog[name][time]['protocol'])
 
+    a = datetime.datetime.today()
+
+    timeExt = timeArray
+    countExt = countArray
+    strTime = timeExt[len(timeArray) - 1]
+    timeObj = datetime.datetime.strptime(strTime, '%d/%m/%Y')
+    x = 1
+    while timeObj < a:
+        timeObj = timeObj + datetime.timedelta(days=x)
+        strTime = datetime.datetime.strftime(timeObj, '%d/%m/%Y')
+        timeExt.append(strTime)
+        countExt.append(0)
+        x += 1
+
+
+
     LHTZdata, RHTZdata = [], []
     for row in baselineTests:
         if row[5] == 'LHTZ':
@@ -676,4 +692,100 @@ def playerPlot(playerTestData, name):
             combinedPeakR = row[29]
     radarDataR = [front150R, frontPeakR, back150R, backPeakR, combined150R, combinedPeakR]
 
-    return baselineMax, fatigueMax, timeArray, countArray, proArray, radarLabels, radarDataL, radarDataR
+    fatigueDict = {}
+    fLabels = ['Force at 0ms', 'Force at 50ms', 'Force at 100ms', 'Force at 150ms',
+                'Force at 200ms', 'Force at 250ms', 'Force at 300ms']
+    for row in fatigueTests:
+        fatigueDict[row[4]] = {}
+        fatigueDict[row[4]]['LHTZ'] = {}
+        fatigueDict[row[4]]['RHTZ'] = {}
+        fatigueDict[row[4]]['LHTZ']['Fresh'] = {}
+        fatigueDict[row[4]]['LHTZ']['Fatigued'] = {}
+        fatigueDict[row[4]]['LHTZ']['Fresh']['Front leg'] = []
+        fatigueDict[row[4]]['LHTZ']['Fatigued']['Back leg'] = []
+        fatigueDict[row[4]]['RHTZ']['Fresh'] = {}
+        fatigueDict[row[4]]['RHTZ']['Fatigued'] = {}
+        fatigueDict[row[4]]['RHTZ']['Fresh']['Front leg'] = []
+        fatigueDict[row[4]]['RHTZ']['Fatigued']['Back leg'] = []
+
+    for key in fatigueDict:
+        fa0LF, fa50LF, fa100LF, fa150LF, fa200LF, fa250LF, fa300LF, peakLF = [], [], [], [], [], [], [], []
+        fa0LB, fa50LB, fa100LB, fa150LB, fa200LB, fa250LB, fa300LB, peakLB = [], [], [], [], [], [], [], []
+        fa0RF, fa50RF, fa100RF, fa150RF, fa200RF, fa250RF, fa300RF, peakRF = [], [], [], [], [], [], [], []
+        fa0RB, fa50RB, fa100RB, fa150RB, fa200RB, fa250RB, fa300RB, peakRB = [], [], [], [], [], [], [], []
+        i = 0
+        for i in range(len(fatigueTests)):
+            if key == fatigueTests[i][4]:
+                if fatigueTests[i][5] == 'LHTZ':
+                    fa0LF.append(fatigueTests[i][6])
+                    fa50LF.append(fatigueTests[i][7])
+                    fa100LF.append(fatigueTests[i][8])
+                    fa150LF.append(fatigueTests[i][9])
+                    fa200LF.append(fatigueTests[i][10])
+                    fa250LF.append(fatigueTests[i][11])
+                    fa300LF.append(fatigueTests[i][12])
+                    peakLF.append(fatigueTests[i][13])
+                    fa0LB.append(fatigueTests[i][14])
+                    fa50LB.append(fatigueTests[i][15])
+                    fa100LB.append(fatigueTests[i][16])
+                    fa150LB.append(fatigueTests[i][17])
+                    fa200LB.append(fatigueTests[i][18])
+                    fa250LB.append(fatigueTests[i][19])
+                    fa300LB.append(fatigueTests[i][20])
+                    peakLB.append(fatigueTests[i][21])
+                else:
+                    fa0RB.append(fatigueTests[i][6])
+                    fa50RB.append(fatigueTests[i][7])
+                    fa100RB.append(fatigueTests[i][8])
+                    fa150RB.append(fatigueTests[i][9])
+                    fa200RB.append(fatigueTests[i][10])
+                    fa250RB.append(fatigueTests[i][11])
+                    fa300RB.append(fatigueTests[i][12])
+                    peakRB.append(fatigueTests[i][13])
+                    fa0RF.append(fatigueTests[i][14])
+                    fa50RF.append(fatigueTests[i][15])
+                    fa100RF.append(fatigueTests[i][16])
+                    fa150RF.append(fatigueTests[i][17])
+                    fa200RF.append(fatigueTests[i][18])
+                    fa250RF.append(fatigueTests[i][19])
+                    fa300RF.append(fatigueTests[i][20])
+                    peakRF.append(fatigueTests[i][21])
+
+        fatigueDict[key]['LHTZ']['Fresh']['Front leg'] = (
+        max(fa0LF, default=0), max(fa50LF, default=0), max(fa100LF, default=0), max(fa150LF, default=0),
+        max(fa200LF, default=0), max(fa250LF, default=0), max(fa300LF, default=0))
+        fatigueDict[key]['LHTZ']['Fatigued']['Front leg'] = (
+        min(fa0LF, default=0), min(fa50LF, default=0), min(fa100LF, default=0), min(fa150LF, default=0),
+        min(fa200LF, default=0), min(fa250LF, default=0), min(fa300LF, default=0))
+        fatigueDict[key]['LHTZ']['Fresh']['Back leg'] = (
+        max(fa0LB, default=0), max(fa50LB, default=0), max(fa100LB, default=0), max(fa150LB, default=0),
+        max(fa200LB, default=0), max(fa250LB, default=0), max(fa300LB, default=0))
+        fatigueDict[key]['LHTZ']['Fatigued']['Back leg'] = (
+        min(fa0LB, default=0), min(fa50LB, default=0), min(fa100LB, default=0), min(fa150LB, default=0),
+        min(fa200LB, default=0), min(fa250LB, default=0), min(fa300LB, default=0))
+
+        fatigueDict[key]['RHTZ']['Fresh']['Front leg'] = (
+        max(fa0RF, default=0), max(fa50RF, default=0), max(fa100RF, default=0), max(fa150RF, default=0),
+        max(fa200RF, default=0), max(fa250RF, default=0), max(fa300RF, default=0))
+        fatigueDict[key]['RHTZ']['Fatigued']['Front leg'] = (
+        min(fa0RF, default=0), min(fa50RF, default=0), min(fa100RF, default=0), min(fa150RF, default=0),
+        min(fa200RF, default=0), min(fa250RF, default=0), min(fa300RF, default=0))
+        fatigueDict[key]['RHTZ']['Fresh']['Back leg'] = (
+        max(fa0RB, default=0), max(fa50RB, default=0), max(fa100RB, default=0), max(fa150RB, default=0),
+        max(fa200RB, default=0), max(fa250RB, default=0), max(fa300RB, default=0))
+        fatigueDict[key]['RHTZ']['Fatigued']['Back leg'] = (
+        min(fa0RB, default=0), min(fa50RB, default=0), min(fa100RB, default=0), min(fa150RB, default=0),
+        min(fa200RB, default=0), min(fa250RB, default=0), min(fa300RB, default=0))
+
+        i=0
+        fPlotDict, fLabelDict = {},{}
+        for key in fatigueDict:
+            for tz in fatigueDict[key]:
+                for state in fatigueDict[key][tz]:
+                    for leg in fatigueDict[key][tz][state]:
+                        fPlotDict[i] = list(fatigueDict[key][tz][state][leg])
+                        fLabelDict[i] = f'{key}: {tz}, {leg}, {state}.'
+                        i+=1
+
+    return baselineMax, fatigueMax, timeArray, countArray, timeExt, \
+           countExt, proArray, radarLabels, radarDataL, radarDataR, fPlotDict, fLabelDict
