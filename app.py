@@ -111,9 +111,9 @@ class playerForm(FlaskForm):
     submit = SubmitField("Take me there")
 
 class squadForm(FlaskForm):
-    squad = SelectField("Select squad to view", choices=['Senior squad (men)', 'U21 squad (men)'], validators=[DataRequired()])
+    org = SelectField("Select squad to view", choices=['Select squad:', 'Senior squad (men)', 'U21 squad (men)'], validators=[DataRequired()])
     pro = SelectField("Select protocol", choices=[], validators=[DataRequired()])
-    submit = SubmitField("Update figures")
+    submit = SubmitField("Take me there")
 
 #Create routes (pages)
 # home page
@@ -157,16 +157,47 @@ def logout():
 @app.route('/dashboard', methods=["GET", "POST"])
 @login_required
 def dashboard():
-    form = playerForm()
-    form.name.choices = [player.User for player in Playerprofiles.query.filter_by(Org='Senior squad (men)').all()]
+    squadform = squadForm(request.form)
+    playerform = playerForm(request.form)
+    form = {
+            'squad':squadform,
+            'player':playerform
+            }
+    playerform.name.choices = [player.User for player in Playerprofiles.query.filter_by(Org='Senior squad (men)').all()]
 
-    if request.method == "POST":
+    if request.method == 'POST' and squadform.validate and squadform.submit:
+        org = request.form['org']
+        pro = request.form['pro']
+        squadTestData = Testdatalog.query.filter_by(Org=org, Protocol=pro)
+        squadPlayers = Playerprofiles.query.filter_by(Org=org)
+        dataArray, dataArrayHead, activeDates,\
+        testsCompleted, players, bestPeak,\
+        best150, FLpeakAsym, BLpeakAsym,\
+        FL150Asym, BL150Asym = pb.squadPlot(squadTestData, squadPlayers, pro)
+        return render_template('squad.html',
+                               pro=pro,
+                               dataArray=dataArray,
+                               dataArrayHead=dataArrayHead,
+                               testsCompleted=testsCompleted,
+                               activeDates=activeDates,
+                               best150=best150,
+                               bestPeak=bestPeak,
+                               players=players,
+                               FL150Asym=FL150Asym,
+                               FLpeakAsym=FLpeakAsym,
+                               BLpeakAsym=BLpeakAsym,
+                               BL150Asym=BL150Asym)
+
+    if request.method == 'POST' and playerform.validate and playerform.submit:
         name = request.form['name']
         playerTestData = Testdatalog.query.filter_by(User=name)
         user = Playerprofiles.query.filter_by(User=name).first()
         height = user.Height
         weight = user.Weight
-        baselineMax, fatigueMax, timeArray, countArray, timeExt, countExt, proArray, radarLabels, radarDataL, radarDataR, fPlotDict, fLabelDict = pb.playerPlot(playerTestData, name)
+        baselineMax, timeArray, countArray, timeExt,\
+        countExt, proArray, radarLabels, radarDataL, radarDataR,\
+        fPlotDictL, fLabelDictL, fPlotDictR, fLabelDictR,\
+        fAsymDict, flAsym, blAsym, dataArrayHead = pb.playerPlot(playerTestData, name)
         index = [row[0] for row in baselineMax]
         protocol = [row[1] for row in baselineMax]
         label = [row[2] for row in baselineMax]
@@ -194,19 +225,24 @@ def dashboard():
                                specificRadarR=specificRadarR,
                                timeExt=timeExt,
                                countExt=countExt,
-                               fPlotDict=fPlotDict,
-                               fLabelDict=fLabelDict)
+                               fPlotDictL=fPlotDictL,
+                               fLabelDictL=fLabelDictL,
+                               fPlotDictR=fPlotDictR,
+                               fLabelDictR=fLabelDictR,
+                               fAsymDict=fAsymDict,
+                               flAsym=flAsym,
+                               blAsym=blAsym,
+                               dataArrayHead=dataArrayHead
+                               )
 
     return render_template('dashboard.html', form=form)
 
 @app.route('/squad', methods=["GET", "POST"])
 @login_required
-def squad():
-    df = pd.read_csv('database.csv')
-    userlist = df['User'].unique()
-    orglist = df['Org'].unique()
-    prolist = df['Protocol'].unique()
-    return render_template('squad.html', userlist=userlist, orglist=orglist, df=df, prolist=prolist)
+def squadPage():
+
+    return render_template('squad.html')
+
 
 @app.route('/player', methods=["GET", "POST"])
 @login_required
@@ -232,6 +268,22 @@ def playerSelect(squad):
 
 
     return jsonify({'players' : playerArray})
+
+@app.route('/pro/<squad>')
+@login_required
+def squadSelect(squad):
+    protocols = Testdatalog.query.filter_by(Org=squad).all()
+
+    proArray=[]
+
+    for protocol in protocols:
+        proObj = {}
+        proObj['id'] = protocol.Index
+        proObj['name'] = protocol.Protocol
+        proArray.append(proObj)
+
+
+    return jsonify({'protocols' : proArray})
 
 #Invalid URL
 @app.errorhandler(404)

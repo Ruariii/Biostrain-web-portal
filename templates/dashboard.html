@@ -27,11 +27,53 @@
   <div class="card-header text-muted" style="text-align:left">
     Squad view: </div>
   <div class="card-body">
-    <h5 class="card-title">View organisation</h5>
-    <p class="card-text">Observe performance across all squads</p>
-    <a href="/squad" class="btn btn-secondary">Take me there</a>
-  </div>
+    <h5 class="card-title">View squad data</h5>
+    <p class="card-text">Select a protocol to view performance analysis across a whole squad </p>
 
+        <div class="shadow p-3 mb-5 bg-body rounded">
+      <form method="POST">
+        {{ form.squad.csrf_token }}
+
+
+        {{( form.squad.org.label(class="form-label") )}}
+        {{( form.squad.org(class="form-control") )}}
+        <br>
+        {{( form.squad.pro.label(class="form-label") )}}
+        {{( form.squad.pro(class="form-control") )}}
+
+        <br>
+        {{( form.squad.submit(class="btn btn-secondary") )}}
+
+      </form>
+
+      <script>
+        var squad_selector = document.getElementById("org");
+        var pro_select = document.getElementById("pro");
+
+        squad_selector.onchange = function()  {
+
+            org = squad_selector.value;
+
+            fetch('/pro/' + org).then(function(response) {
+
+                response.json().then(function(data) {
+                    var optionHTML = '';
+
+                    for (var protocol of data.protocols) {
+                        var pName = '<option>' + protocol.name + '</option>';
+                        if ( optionHTML.includes(pName) === false) {
+                          optionHTML += '<option>' + protocol.name + '</option>';
+                        }
+                    }
+
+                    pro_select.innerHTML = optionHTML;
+                })
+
+            });
+        }
+    </script>
+</div>
+</div>
 </div>
 <br><br>
     <div class="card text-center">
@@ -45,17 +87,16 @@
 
     <div class="shadow p-3 mb-5 bg-body rounded">
       <form method="POST">
-        {{ form.csrf_token }}
+        {{ form.player.csrf_token }}
 
 
-        {{ form.squad.label(class="form-label") }}
-        {{ form.squad(class="form-control") }}
+        {{ form.player.squad.label(class="form-label") }}
+        {{ form.player.squad(class="form-control") }}
         <br>
-        {{ form.name.label(class="form-label") }}
-        {{ form.name(class="form-control") }}
-
+        {{ form.player.name.label(class="form-label") }}
+        {{ form.player.name(class="form-control") }}
         <br>
-        {{ form.submit(class="btn btn-secondary")}}
+        {{ form.player.submit(class="btn btn-secondary")}}
 
       </form>
 
@@ -84,11 +125,12 @@
     </script>
 
     </div>
-
   </div>
 
-  </div>
 
+
+
+  </div>
   </body>
 {% endblock %}
 </html>

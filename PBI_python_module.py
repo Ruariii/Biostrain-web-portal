@@ -1,5 +1,3 @@
-import plotly.express as px
-import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 import statistics as st
@@ -8,531 +6,6 @@ import datetime
 
 ####################################################################################################
 
-
-def sorter(directory):
-    fnames = []
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            if file.endswith(".csv"):
-                fnames.append(os.path.join(root, file))
-
-    datafiles, sessionfiles = [], []
-    for name in fnames:
-        if name[len(name) - 43] == '1':
-            if 'sessionData' in name:
-                datafiles.append(name)
-            elif 'sessionStats' in name:
-                sessionfiles.append(name)
-            else:
-                continue
-        else:
-            continue
-
-    org = []
-    datesUTC = []
-    dates = []
-    TZ = []
-    pro = []
-    mode = []
-    comb = []
-    user = []
-    j = 0
-    for f in sessionfiles:
-        try:
-            sf = pd.read_csv(f, header=0, nrows=7)
-        except Exception as e:
-            pass
-        if np.shape(sf.values) == (7, 1):
-            org.append(str(sf.values[0][0]))
-            user.append(str(sf.values[1][0]))
-            mode.append(str(sf.values[5][0]))
-            pro.append(str(sf.values[6][0]))
-        elif np.shape(sf.values) == (7, 2):
-            org.append(str(sf.values[0][1]))
-            user.append(str(sf.values[1][1]))
-            mode.append(str(sf.values[5][1]))
-            pro.append(str(sf.values[6][1]))
-        datesUTC.append(f[len(f) - 43:len(f) - 33])
-        dates.append(datetime.utcfromtimestamp(int(datesUTC[j])).strftime('%Y-%m-%d %H:%M:%S'))
-        TZ.append(f[len(f) - 21:len(f) - 17])
-        j += 1
-
-    for d in range(len(datesUTC)):
-        comb.append((org[d], user[d], dates[d], mode[d], pro[d], TZ[d]))
-
-    df = pd.DataFrame(comb)
-    org = df[:][0]
-    user = df[:][1]
-    sdt = df[:][2]
-    mode = df[:][3]
-    pro = df[:][4]
-    tz = df[:][5]
-    finfo = pd.DataFrame({'Organisation': org,
-                         'User': user,
-                         'Session timestamp': sdt,
-                         'Mode': mode,
-                         'Protocol': pro,
-                         'Transformational_zone': tz})
-
-    return finfo, sessionfiles, datafiles
-
-####################################################################################################
-
-def getStats(finfo, sessionfiles, org_val, user_val, pro_val, tz_val):
-
-    idx = []
-    s, sL, sR = [], [], []
-    if tz_val == 'Both':
-        search_params = {'Organisation': org_val,
-                         'User': user_val,
-                         'Protocol': pro_val}
-        tzstr = "LHTZ & RHTZ"
-    else:
-        search_params = {'Organisation': org_val,
-                         'User': user_val,
-                         'Protocol': pro_val,
-                         'Transformational_zone': tz_val}
-        tzstr = str(tz_val)
-    stats = {}
-    for i in range(len(finfo)):
-        test = 0
-        for key in search_params:
-            if search_params[key] == finfo[key][i]:
-                test += 1
-            else:
-                continue
-        if test == len(search_params):
-            idx.append(i)
-        else:
-            continue
-
-    for j in idx:
-
-        sf = pd.read_csv(sessionfiles[j], header=15)
-
-        namecol = sf.iloc[:, 0]
-        forcecol = sf.iloc[:, 1]
-
-        lp, l0, l50, l100, l150, l200, l250, l300 = [], [], [], [], [], [], [], []
-        rp, r0, r50, r100, r150, r200, r250, r300 = [], [], [], [], [], [], [], []
-
-        for i in range(len(namecol)):
-
-            if namecol[i] == 'Left peak force':
-                lp.append(forcecol[i])
-                continue
-            elif namecol[i] == 'Right peak force':
-                rp.append(forcecol[i])
-                continue
-
-            if namecol[i] == 'Left force @ 0':
-                l0.append(forcecol[i])
-                continue
-            elif namecol[i] == 'Right force @ 0':
-                r0.append(forcecol[i])
-                continue
-
-            elif namecol[i] == 'Left force @ 50':
-                l50.append(forcecol[i])
-                continue
-            elif namecol[i] == 'Right force @ 50':
-                r50.append(forcecol[i])
-                continue
-
-            if namecol[i] == 'Left force @ 100':
-                l100.append(forcecol[i])
-                continue
-            elif namecol[i] == 'Right force @ 100':
-                r100.append(forcecol[i])
-                continue
-
-            elif namecol[i] == 'Left force @ 150':
-                l150.append(forcecol[i])
-                continue
-            elif namecol[i] == 'Right force @ 150':
-                r150.append(forcecol[i])
-                continue
-
-            if namecol[i] == 'Left force @ 200':
-                l200.append(forcecol[i])
-                continue
-            elif namecol[i] == 'Right force @ 200':
-                r200.append(forcecol[i])
-                continue
-
-            elif namecol[i] == 'Left force @ 250':
-                l250.append(forcecol[i])
-                continue
-            elif namecol[i] == 'Right force @ 250':
-                r250.append(forcecol[i])
-                continue
-
-            if namecol[i] == 'Left force @ 300':
-                l300.append(forcecol[i])
-                continue
-            elif namecol[i] == 'Right force @ 300':
-                r300.append(forcecol[i])
-                continue
-
-        org = finfo['Organisation'][j]
-        user = finfo['User'][j]
-        timestamp = sessionfiles[j][len(sessionfiles[j]) - 32:len(sessionfiles[j]) - 22]
-        tz = finfo['Transformational_zone'][j]
-
-        lpm, l0m, l50m, l100m, l150m, l200m, l250m, l300m = max(lp, default=0), max(l0, default=0), max(l50,
-                                                                                                        default=0), max(
-            l100, default=0), max(l150, default=0), max(l200, default=0), max(l250, default=0), max(l300, default=0)
-        rpm, r0m, r50m, r100m, r150m, r200m, r250m, r300m = max(rp, default=0), max(r0, default=0), max(r50,
-                                                                                                        default=0), max(
-            r100, default=0), max(r150, default=0), max(r200, default=0), max(r250, default=0), max(r300, default=0)
-
-        s.append((org, user, datetime.utcfromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S'), tz, lpm, l0m,
-                  l50m, l100m, l150m, l200m, l250m, l300m, rpm, r0m, r50m, r100m,r150m, r200m, r250m, r300m))
-
-        if tz == 'LHTZ':
-            sL.append((org, user, datetime.utcfromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S'), tz, lpm, l0m,
-                       l50m, l100m, l150m, l200m, l250m, l300m, rpm, r0m, r50m, r100m, r150m, r200m, r250m, r300m))
-        else:
-            sR.append((org, user, datetime.utcfromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S'), tz, lpm, l0m,
-                       l50m, l100m, l150m, l200m, l250m, l300m, rpm, r0m, r50m, r100m, r150m, r200m, r250m, r300m))
-
-    stats = pd.DataFrame(s,
-                         columns=['Organisation', 'User',
-                                  'Timestamp', 'Transformational zone',
-                                  'Peak forceL', 'Force @ 0msL',
-                                  'Force @ 50msL', 'Force @ 100msL',
-                                  'Force @ 150msL', 'Force @ 200msL',
-                                  'Force @ 250msL', 'Force @ 300msL',
-                                  'Peak forceR', 'Force @ 0msR',
-                                  'Force @ 50msR', 'Force @ 100msR',
-                                  'Force @ 150msR', 'Force @ 200msR',
-                                  'Force @ 250msR', 'Force @ 300msR'])
-
-    LHTZstats = pd.DataFrame(sL,
-                             columns=['Organisation', 'User',
-                                      'Timestamp', 'Transformational zone',
-                                      'Peak forceL', 'Force @ 0msL',
-                                      'Force @ 50msL', 'Force @ 100msL',
-                                      'Force @ 150msL', 'Force @ 200msL',
-                                      'Force @ 250msL', 'Force @ 300msL',
-                                      'Peak forceR', 'Force @ 0msR',
-                                      'Force @ 50msR', 'Force @ 100msR',
-                                      'Force @ 150msR', 'Force @ 200msR',
-                                      'Force @ 250msR', 'Force @ 300msR'])
-
-    RHTZstats = pd.DataFrame(sR,
-                             columns=['Organisation', 'User',
-                                      'Timestamp', 'Transformational zone',
-                                      'Peak forceL', 'Force @ 0msL',
-                                      'Force @ 50msL', 'Force @ 100msL',
-                                      'Force @ 150msL', 'Force @ 200msL',
-                                      'Force @ 250msL', 'Force @ 300msL',
-                                      'Peak forceR', 'Force @ 0msR',
-                                      'Force @ 50msR', 'Force @ 100msR',
-                                      'Force @ 150msR', 'Force @ 200msR',
-                                      'Force @ 250msR', 'Force @ 300msR'])
-
-
-    return stats
-
-####################################################################################################
-
-def sessionPlotter(xplot, yplot, title):
-
-    fig = go.Figure()
-
-    for plot in yplot:
-        fig.add_trace(go.Scatter(
-            x=xplot,
-            y=yplot[plot],
-            name=plot))
-
-    fig.update_layout(
-        yaxis_title="Force (kg)",
-        legend_title="Legend",
-        plot_bgcolor="#4184C5",
-        paper_bgcolor="rgb(15,37,55)",
-        font=dict(
-            size=12,
-            color="white"
-        ),
-        title_text=title,
-        title_yref="paper",
-        title_xanchor="center",
-        colorway=px.colors.qualitative.Light24,
-        legend_orientation="h",
-        legend_y=-0.25,
-        height=500
-    )
-    fig.update_layout(hovermode="x unified",
-                      hoverlabel=dict(
-                          bgcolor="rgb(15,37,55)",
-                          bordercolor="lightgrey",
-                          namelength=-1
-                      ))
-
-    return fig
-
-
-def dataPuller(directory):
-    import os
-    fnames = []
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            if file.endswith(".csv"):
-                fnames.append(os.path.join(root, file))
-
-    datafiles, sessionfiles = [], []
-    for name in fnames:
-        if name[len(name) - 43] == '1':
-            if 'sessionData' in name:
-                datafiles.append(name)
-            elif 'sessionStats' in name:
-                sessionfiles.append(name)
-            else:
-                continue
-        else:
-            continue
-
-    comb = []
-    for f in sessionfiles:
-
-        datesUTC = (f[len(f) - 43:len(f) - 33])
-        D = (datetime.utcfromtimestamp(int(datesUTC)).strftime('%Y-%m-%d %H:%M'))
-        TZ = (f[len(f) - 21:len(f) - 17])
-        try:
-            df = pd.read_csv(f, header=None, names=[0, 1], index_col=False)
-            info = df.iloc[0:9, :]
-            O = (info.values[1][1])
-            U = (info.values[2][1])
-            P = (info.values[7][1])
-
-            stats = df.iloc[13:len(df), :]
-            namecol = stats.iloc[:, 0]
-            forcecol = stats.iloc[:, 1]
-
-            lp, l0, l50, l100, l150, l200, l250, l300 = [], [], [], [], [], [], [], []
-            rp, r0, r50, r100, r150, r200, r250, r300 = [], [], [], [], [], [], [], []
-            for i in range(13, len(df)):
-
-                if namecol[i] == 'Left peak force':
-                    lp.append(forcecol[i])
-                    continue
-                elif namecol[i] == 'Right peak force':
-                    rp.append(forcecol[i])
-                    continue
-
-                if namecol[i] == 'Left force @ 0':
-                    l0.append(forcecol[i])
-                    continue
-                elif namecol[i] == 'Right force @ 0':
-                    r0.append(forcecol[i])
-                    continue
-
-                elif namecol[i] == 'Left force @ 50':
-                    l50.append(forcecol[i])
-                    continue
-                elif namecol[i] == 'Right force @ 50':
-                    r50.append(forcecol[i])
-                    continue
-
-                if namecol[i] == 'Left force @ 100':
-                    l100.append(forcecol[i])
-                    continue
-                elif namecol[i] == 'Right force @ 100':
-                    r100.append(forcecol[i])
-                    continue
-
-                elif namecol[i] == 'Left force @ 150':
-                    l150.append(forcecol[i])
-                    continue
-                elif namecol[i] == 'Right force @ 150':
-                    r150.append(forcecol[i])
-                    continue
-
-                if namecol[i] == 'Left force @ 200':
-                    l200.append(forcecol[i])
-                    continue
-                elif namecol[i] == 'Right force @ 200':
-                    r200.append(forcecol[i])
-                    continue
-
-                elif namecol[i] == 'Left force @ 250':
-                    l250.append(forcecol[i])
-                    continue
-                elif namecol[i] == 'Right force @ 250':
-                    r250.append(forcecol[i])
-                    continue
-
-                if namecol[i] == 'Left force @ 300':
-                    l300.append(forcecol[i])
-                    continue
-                elif namecol[i] == 'Right force @ 300':
-                    r300.append(forcecol[i])
-                    continue
-
-            lpm, l0m, l50m, l100m, l150m, l200m, l250m, l300m = max(lp, default=0), max(l0, default=0), max(l50,
-                                                                                                            default=0), max(
-                l100, default=0), max(l150, default=0), max(l200, default=0), max(l250, default=0), max(l300, default=0)
-            rpm, r0m, r50m, r100m, r150m, r200m, r250m, r300m = max(rp, default=0), max(r0, default=0), max(r50,
-                                                                                                            default=0), max(
-                r100, default=0), max(r150, default=0), max(r200, default=0), max(r250, default=0), max(r300, default=0)
-
-            comb.append((O, U, D, P, TZ, l0m, l50m, l100m, l150m, l200m, l250m, l300m, lpm, r0m, r50m, r100m, r150m,
-                         r200m, r250m, r300m, rpm))
-
-
-        except:
-            continue
-
-    headings = ['Org', 'User', 'Timestamp', 'Protocol', 'TZ',
-                'Left force @ 0ms', 'Left force @ 50ms',
-                'Left force @ 100ms', 'Left force @ 150ms',
-                'Left force @ 200ms', 'Left force @ 250ms',
-                'Left force @ 300ms', 'Left peak force',
-                'Right force @ 0ms', 'Right force @ 50ms',
-                'Right force @ 100ms', 'Right force @ 150ms',
-                'Right force @ 200ms', 'Right force @ 250ms',
-                'Right force @ 300ms', 'Right peak force']
-    datafile = pd.DataFrame(comb, columns=headings)
-
-    return datafile
-
-def plotStyle(ptitle, x_val):
-
-    plotcolors = ['#FD3216', '#00FE35', '#B68E00', '#0DF9FF',
-                  '#FE00CE', '#479B55', '#F6F926', '#FED4C4',
-                  '#FF9616', '#EEA6FB', '#DC587D', '#D626FF',
-                  '#6E899C', '#00B5F7', '#6A76FC', '#C9FBE5',
-                  '#FF0092', '#22FFA7', '#E3EE9E', '#86CE00',
-                  '#BC7196', '#FC6955', '#E48F72']
-
-    fig = go.Figure()
-    fig.update_xaxes(showgrid=True, gridcolor='white',
-                     showline=True, linewidth=2, linecolor='white', mirror=True)
-    fig.update_yaxes(showgrid=True, gridcolor='white',
-                     showline=True, linewidth=2, linecolor='white', mirror=True)
-    fig.update_layout(
-        autotypenumbers='convert types',
-        xaxis_title=str(x_val),
-        yaxis_title="Force (kg)",
-        legend_title="Legend:",
-        plot_bgcolor="#4184C5",
-        paper_bgcolor="rgb(15,37,55)",
-        colorway=plotcolors,
-        font=dict(
-            size=12,
-            color="white"
-        ),
-        title_text=ptitle,
-        title_font_size=20,
-        title_xanchor="center",
-        title_x=0.5,
-        legend_orientation="h",
-        legend_y=-0.125,
-        legend_xanchor="center",
-        legend_x=0.5,
-        font_size=14,
-        height=750
-    )
-    fig.update_layout(hovermode="x unified",
-                      hoverlabel=dict(
-                          bgcolor="rgb(15,37,55)",
-                          bordercolor="lightgrey",
-                          namelength=-1
-                      ))
-    return fig
-
-
-
-def create_df(df, org, pro):
-
-    if org == 'All':
-        orgFilteredData=df
-    else:
-        orgFilteredData=df.query(f"Org == '{org}'")
-    if pro == 'Any':
-        proFilteredData=orgFilteredData
-    else:
-        proFilteredData=orgFilteredData.query(f"Protocol == '{pro}'")
-
-    plotdf = proFilteredData.reset_index()
-
-    return plotdf
-
-
-
-def create_dict(df):
-    #filter database
-    count=0
-    idx=['Org', 'User', 'Timestamp', 'Protocol', 'TZ',
-           'Left force @ 0ms', 'Left force @ 50ms', 'Left force @ 100ms',
-           'Left force @ 150ms', 'Left force @ 200ms', 'Left force @ 250ms',
-           'Left force @ 300ms', 'Left peak force', 'Right force @ 0ms',
-           'Right force @ 50ms', 'Right force @ 100ms', 'Right force @ 150ms',
-           'Right force @ 200ms', 'Right force @ 250ms', 'Right force @ 300ms',
-           'Right peak force']
-    dataidx=['Left force @ 0ms', 'Left force @ 50ms', 'Left force @ 100ms',
-           'Left force @ 150ms', 'Left force @ 200ms', 'Left force @ 250ms',
-           'Left force @ 300ms', 'Left peak force', 'Right force @ 0ms',
-           'Right force @ 50ms', 'Right force @ 100ms', 'Right force @ 150ms',
-           'Right force @ 200ms', 'Right force @ 250ms', 'Right force @ 300ms',
-           'Right peak force']
-
-    fildf = df[idx]
-
-    #initialise dict
-    plotDict={}
-    for user in fildf['User'].unique():
-        plotDict[user]={}
-    for user in plotDict:
-        for i in range(len(fildf)):
-            if fildf['User'][i] == user:
-                plotDict[user][fildf['Protocol'][i]]={}
-
-    for user in plotDict:
-        for protocol in  plotDict[user]:
-            for i in range(len(fildf)):
-                if fildf['Protocol'][i] == protocol:
-                    plotDict[user][protocol][fildf['TZ'][i]] = {}
-
-    for user in plotDict:
-        for protocol in  plotDict[user]:
-            for tz in plotDict[user][protocol]:
-                plotDict[user][protocol][tz]['Front leg']={}
-                plotDict[user][protocol][tz]['Back leg']={}
-
-
-    for user in plotDict:
-        for protocol in  plotDict[user]:
-            for tz in plotDict[user][protocol]:
-                for leg in plotDict[user][protocol][tz]:
-                    for i in dataidx:
-                        plotDict[user][protocol][tz][leg][i]=[]
-    #populate dict
-    for user in plotDict:
-        for protocol in  plotDict[user]:
-            for tz in plotDict[user][protocol]:
-                 for leg in plotDict[user][protocol][tz]:
-                        for data in plotDict[user][protocol][tz][leg]:
-                            for i in range(len(fildf)):
-                                if tz == 'LHTZ' and leg == 'Front leg':
-                                    if fildf['TZ'][i] == tz and fildf['Protocol'][i] == protocol and fildf['User'][i] == user:
-                                        if 'Left' in data:
-                                            plotDict[user][protocol][tz][leg][data].append(fildf[data][i])
-                                elif tz == 'LHTZ' and leg == 'Back leg':
-                                    if fildf['TZ'][i] == tz and fildf['Protocol'][i] == protocol and fildf['User'][i] == user:
-                                        if 'Right' in data:
-                                            plotDict[user][protocol][tz][leg][data].append(fildf[data][i])
-                                elif tz == 'RHTZ' and leg == 'Front leg':
-                                    if fildf['TZ'][i] == tz and fildf['Protocol'][i] == protocol and fildf['User'][i] == user:
-                                        if 'Right' in data:
-                                            plotDict[user][protocol][tz][leg][data].append(fildf[data][i])
-                                else:
-                                    if fildf['TZ'][i] == tz and fildf['Protocol'][i] == protocol and fildf['User'][i] == user:
-                                        if 'Left' in data:
-                                            plotDict[user][protocol][tz][leg][data].append(fildf[data][i])
-    return plotDict
 
 
 
@@ -544,17 +17,27 @@ def playerPlot(playerTestData, name):
 
     # get dataArray - all tests
     dataArray = []
+    infoArray = []
     for i in playerTestData:
-        for col in cols:
-            dataArray.append((i.Index, i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
-                             i.Left0ms, i.Left50ms, i.Left100ms,
-                             i.Left150ms, i.Left200ms, i.Left250ms,
-                             i.Left300ms, i.Leftpeak, i.Right0ms,
-                             i.Right50ms, i.Right100ms, i.Right150ms,
-                             i.Right200ms, i.Right250ms, i.Right300ms,
-                             i.Rightpeak, i.Combined0ms, i.Combined50ms,
-                             i.Combined100ms, i.Combined150ms, i.Combined200ms,
-                             i.Combined250ms, i.Combined300ms, i.Combinedpeak))
+        dataArray.append((i.Index, i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
+                         i.Left0ms, i.Left50ms, i.Left100ms,
+                         i.Left150ms, i.Left200ms, i.Left250ms,
+                         i.Left300ms, i.Leftpeak, i.Right0ms,
+                         i.Right50ms, i.Right100ms, i.Right150ms,
+                         i.Right200ms, i.Right250ms, i.Right300ms,
+                         i.Rightpeak, i.Combined0ms, i.Combined50ms,
+                         i.Combined100ms, i.Combined150ms, i.Combined200ms,
+                         i.Combined250ms, i.Combined300ms, i.Combinedpeak))
+
+        infoArray.append((i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
+                         i.Leftpeak, i.Rightpeak))
+
+    # get last 5 tests
+    end = len(dataArray) - 1
+    if len(dataArray)>5:
+        dataArrayHead = infoArray[end-5:end]
+    else:
+        dataArrayHead = infoArray[0:end]
 
     # split into baseline & fatigue tests based on protocol name
     baselineTests, fatigueTests = [], []
@@ -634,7 +117,7 @@ def playerPlot(playerTestData, name):
     timeArray=[time for time in activityLog[name]]
     countArray, proArray = [], []
     for time in timeArray:
-        countArray.append(activityLog[name][time]['count']/30)
+        countArray.append(activityLog[name][time]['count'])
         proArray.append(activityLog[name][time]['protocol'])
 
     a = datetime.datetime.today()
@@ -666,29 +149,29 @@ def playerPlot(playerTestData, name):
     for row in LHTZdata:
         if row[9] > front150L:
             front150L = row[9]
-        elif row[13] > frontPeakL:
+        if row[13] > frontPeakL:
             frontPeakL = row[13]
-        elif row[17] > back150L:
+        if row[17] > back150L:
             back150L = row[17]
-        elif row[21] > backPeakL:
+        if row[21] > backPeakL:
             backPeakL = row[21]
-        elif row[25] > combined150L:
+        if row[25] > combined150L:
             combined150L = row[25]
-        elif row[29] > combinedPeakL:
+        if row[29] > combinedPeakL:
             combinedPeakL = row[29]
     radarDataL = [front150L, frontPeakL, back150L, backPeakL, combined150L, combinedPeakL]
     for row in RHTZdata:
         if row[9] > back150R:
             back150R = row[9]
-        elif row[13] > backPeakR:
+        if row[13] > backPeakR:
             backPeakR = row[13]
-        elif row[17] > front150R:
+        if row[17] > front150R:
             front150R = row[17]
-        elif row[21] > frontPeakR:
+        if row[21] > frontPeakR:
             frontPeakR = row[21]
-        elif row[25] > combined150R:
+        if row[25] > combined150R:
             combined150R = row[25]
-        elif row[29] > combinedPeakR:
+        if row[29] > combinedPeakR:
             combinedPeakR = row[29]
     radarDataR = [front150R, frontPeakR, back150R, backPeakR, combined150R, combinedPeakR]
 
@@ -753,39 +236,190 @@ def playerPlot(playerTestData, name):
 
         fatigueDict[key]['LHTZ']['Fresh']['Front leg'] = (
         max(fa0LF, default=0), max(fa50LF, default=0), max(fa100LF, default=0), max(fa150LF, default=0),
-        max(fa200LF, default=0), max(fa250LF, default=0), max(fa300LF, default=0))
+        max(fa200LF, default=0), max(fa250LF, default=0), max(fa300LF, default=0), max(peakLF, default=0))
         fatigueDict[key]['LHTZ']['Fatigued']['Front leg'] = (
         min(fa0LF, default=0), min(fa50LF, default=0), min(fa100LF, default=0), min(fa150LF, default=0),
-        min(fa200LF, default=0), min(fa250LF, default=0), min(fa300LF, default=0))
+        min(fa200LF, default=0), min(fa250LF, default=0), min(fa300LF, default=0), min(peakLF, default=0))
         fatigueDict[key]['LHTZ']['Fresh']['Back leg'] = (
         max(fa0LB, default=0), max(fa50LB, default=0), max(fa100LB, default=0), max(fa150LB, default=0),
-        max(fa200LB, default=0), max(fa250LB, default=0), max(fa300LB, default=0))
+        max(fa200LB, default=0), max(fa250LB, default=0), max(fa300LB, default=0), max(peakLB, default=0))
         fatigueDict[key]['LHTZ']['Fatigued']['Back leg'] = (
         min(fa0LB, default=0), min(fa50LB, default=0), min(fa100LB, default=0), min(fa150LB, default=0),
-        min(fa200LB, default=0), min(fa250LB, default=0), min(fa300LB, default=0))
+        min(fa200LB, default=0), min(fa250LB, default=0), min(fa300LB, default=0), min(peakLB, default=0))
 
         fatigueDict[key]['RHTZ']['Fresh']['Front leg'] = (
         max(fa0RF, default=0), max(fa50RF, default=0), max(fa100RF, default=0), max(fa150RF, default=0),
-        max(fa200RF, default=0), max(fa250RF, default=0), max(fa300RF, default=0))
+        max(fa200RF, default=0), max(fa250RF, default=0), max(fa300RF, default=0), max(peakRF, default=0))
         fatigueDict[key]['RHTZ']['Fatigued']['Front leg'] = (
         min(fa0RF, default=0), min(fa50RF, default=0), min(fa100RF, default=0), min(fa150RF, default=0),
-        min(fa200RF, default=0), min(fa250RF, default=0), min(fa300RF, default=0))
+        min(fa200RF, default=0), min(fa250RF, default=0), min(fa300RF, default=0), min(peakRF, default=0))
         fatigueDict[key]['RHTZ']['Fresh']['Back leg'] = (
         max(fa0RB, default=0), max(fa50RB, default=0), max(fa100RB, default=0), max(fa150RB, default=0),
-        max(fa200RB, default=0), max(fa250RB, default=0), max(fa300RB, default=0))
+        max(fa200RB, default=0), max(fa250RB, default=0), max(fa300RB, default=0), max(peakRB, default=0))
         fatigueDict[key]['RHTZ']['Fatigued']['Back leg'] = (
         min(fa0RB, default=0), min(fa50RB, default=0), min(fa100RB, default=0), min(fa150RB, default=0),
-        min(fa200RB, default=0), min(fa250RB, default=0), min(fa300RB, default=0))
+        min(fa200RB, default=0), min(fa250RB, default=0), min(fa300RB, default=0), max(peakRB, default=0))
 
-        i=0
-        fPlotDict, fLabelDict = {},{}
-        for key in fatigueDict:
-            for tz in fatigueDict[key]:
-                for state in fatigueDict[key][tz]:
-                    for leg in fatigueDict[key][tz][state]:
-                        fPlotDict[i] = list(fatigueDict[key][tz][state][leg])
-                        fLabelDict[i] = f'{key}: {tz}, {leg}, {state}.'
+    i=0
+    j=0
+    fPlotDictL, fLabelDictL = {}, {}
+    fPlotDictR, fLabelDictR = {}, {}
+    for key in fatigueDict:
+        for tz in fatigueDict[key]:
+            for state in fatigueDict[key][tz]:
+                for leg in fatigueDict[key][tz][state]:
+                    if tz == 'LHTZ':
+                        fPlotDictL[i] = list(fatigueDict[key][tz][state][leg])
+                        fLabelDictL[i] = f'{key}: {leg}, {state}'
                         i+=1
+                    else:
+                        fPlotDictR[j] = list(fatigueDict[key][tz][state][leg])
+                        fLabelDictR[j] = f'{key}: {leg}, {state}'
+                        j+=1
 
-    return baselineMax, fatigueMax, timeArray, countArray, timeExt, \
-           countExt, proArray, radarLabels, radarDataL, radarDataR, fPlotDict, fLabelDict
+    fAsymDict={}
+    for key in fPlotDictR:
+        fAsymDict[key]=[]
+        for i in range(1, len(fPlotDictL[key])):
+            try:
+                fAsymDict[key].append(100*(fPlotDictR[key][i]-fPlotDictL[key][i])/max(fPlotDictR[key][i],fPlotDictL[key][i]))
+            except:
+                fAsymDict[key].append(0)
+
+
+    flFatigue, blFatigue = [], []
+    for key in fLabelDictL:
+        if 'Front leg' in fLabelDictL[key]:
+            flFatigue.append((fAsymDict[key]))
+        else:
+            blFatigue.append((fAsymDict[key]))
+
+    flAsym, blAsym = [], []
+    for i in range(len(flFatigue[0])):
+        avgFL = []
+        avgBL = []
+        for row in range(len(flFatigue)):
+            avgFL.append(flFatigue[row][i])
+            avgBL.append(blFatigue[row][i])
+        flAsym.append(sum(avgFL) / len(flFatigue))
+        blAsym.append(sum(avgBL) / len(blFatigue))
+
+    return baselineMax, timeArray, countArray, timeExt, \
+           countExt, proArray, radarLabels, radarDataL, radarDataR, fPlotDictL,\
+           fLabelDictL, fPlotDictR, fLabelDictR, fAsymDict, flAsym, blAsym, dataArrayHead
+
+
+def squadPlot(squadTestData, squadPlayers, pro):
+    cols = ["Index", "Org", "User", "Timestamp", "Protocol", "TZ", "Left0ms", "Left50ms", "Left100ms", "Left150ms",
+            "Left200ms", "Left250ms", "Left300ms", "Leftpeak", "Right0ms", "Right50ms", "Right100ms", "Right150ms",
+            "Right200ms", "Right250ms", "Right300ms", "Rightpeak", "Combined0ms", "Combined50ms", "Combined100ms",
+            "Combined150ms", "Combined200ms", "Combined250ms", "Combined300ms", "Combinedpeak"]
+
+    players=[]
+    for i in squadPlayers:
+        players.append(i.User)
+
+    # get dataArray - all tests
+    dataArray = []
+    infoArray = []
+    for i in squadTestData:
+        dataArray.append((i.Index, i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
+                         i.Left0ms, i.Left50ms, i.Left100ms,
+                         i.Left150ms, i.Left200ms, i.Left250ms,
+                         i.Left300ms, i.Leftpeak, i.Right0ms,
+                         i.Right50ms, i.Right100ms, i.Right150ms,
+                         i.Right200ms, i.Right250ms, i.Right300ms,
+                         i.Rightpeak, i.Combined0ms, i.Combined50ms,
+                         i.Combined100ms, i.Combined150ms, i.Combined200ms,
+                         i.Combined250ms, i.Combined300ms, i.Combinedpeak))
+
+        infoArray.append((i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
+                         i.Leftpeak, i.Rightpeak))
+    # get last 5 tests
+    end = len(dataArray) - 1
+    if len(dataArray)>5:
+        dataArrayHead = infoArray[end-5:end]
+    else:
+        dataArrayHead = infoArray[0:end]
+
+
+    # get activity
+    activityLog = {}
+    for row in dataArray:
+        activityLog[row[3]] = 0
+
+    a = datetime.datetime.today()
+    activeDates = list(activityLog.keys())
+    lastAct = activeDates[len(activeDates)-1]
+    timeObj = datetime.datetime.strptime(lastAct, '%d/%m/%Y')
+    x=0
+    while timeObj < a:
+        timeObj = timeObj + datetime.timedelta(days=x)
+        strTime = datetime.datetime.strftime(timeObj, '%d/%m/%Y')
+        activityLog[strTime] = 0
+        x+=1
+    for key in activityLog:
+        count=0
+        for row in dataArray:
+            if row[3] == key:
+                count+=1
+        activityLog[key]=count
+
+    activeDates = list(activityLog.keys())
+    testsCompleted = [activityLog[key] for key in activeDates]
+
+    # get best/worst scores from each protocol
+    best150, bestPeak = [], []
+    FLpeakAsym, BLpeakAsym, FL150Asym, BL150Asym = [], [], [], []
+    for player in players:
+        max150, maxPeak = [], []
+        FLmax150L, FLmaxPeakL = [], []
+        BLmax150L, BLmaxPeakL = [], []
+        FLmax150R, FLmaxPeakR = [], []
+        BLmax150R, BLmaxPeakR = [], []
+        for row in dataArray:
+            if row[2] == player:
+                max150.append(row[25])
+                maxPeak.append(row[29])
+                if row[5] == 'LHTZ':
+                    FLmax150L.append(row[9])
+                    FLmaxPeakL.append(row[13])
+                    BLmax150L.append(row[17])
+                    BLmaxPeakL.append(row[21])
+                elif row[5] == 'RHTZ':
+                    BLmax150R.append(row[9])
+                    BLmaxPeakR.append(row[13])
+                    FLmax150R.append(row[17])
+                    FLmaxPeakR.append(row[21])
+
+        best150.append(max(max150, default=0))
+        bestPeak.append(max(maxPeak, default=0))
+        flpL = max(FLmaxPeakL, default=0)
+        blpL = max(BLmaxPeakL, default=0)
+        fl150L = max(FLmax150L, default=0)
+        bl150L = max(BLmax150L, default=0)
+        flpR = max(FLmaxPeakR, default=0)
+        blpR = max(BLmaxPeakR, default=0)
+        fl150R = max(FLmax150R, default=0)
+        bl150R = max(BLmax150R, default=0)
+
+        try:
+            FLpeakAsym.append(100 * (flpR - flpL) / (max(flpL, flpR)))
+            FL150Asym.append(100 * (fl150R - fl150L) / (max(fl150L, fl150R)))
+            BLpeakAsym.append(100 * (blpR - blpL) / (max(blpL, blpR)))
+            BL150Asym.append(100 * (bl150R - bl150L) / (max(bl150L, bl150R)))
+        except:
+            FLpeakAsym.append(0)
+            FL150Asym.append(0)
+            BLpeakAsym.append(0)
+            BL150Asym.append(0)
+
+    # get best worst asymmtery
+    LHTZdata, RHTZdata = [], []
+    for row in dataArray:
+        if row[5] == 'LHTZ':
+            LHTZdata.append(row)
+        else:
+            RHTZdata.append(row)
+
+    return dataArray, dataArrayHead, activeDates, testsCompleted, players, bestPeak, best150, FLpeakAsym, BLpeakAsym, FL150Asym, BL150Asym

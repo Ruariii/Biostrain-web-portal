@@ -30,7 +30,72 @@
   <div class="card-body">
     <h5 class="card-title">Activity log</h5>
     <p class="card-text">Monitor your activity on the Biostrain system.</p>
-    <canvas id="activityChart" width="900" height="500"></canvas>
+    <canvas id="activityChart" width="1200" height="500"></canvas>
+    <hr>
+    <h5 class="card-title">Last 5 completed tests:</h5>
+    <br>
+    <table id="activityTable" class="table table-hover">
+      <tr class="table-secondary">
+        <th scope="col" style="text-align:center">  </th>
+        <th scope="col" style="text-align:center"> Squad </th>
+        <th scope="col" style="text-align:center"> User </th>
+        <th scope="col" style="text-align:center"> Test date </th>
+        <th scope="col" style="text-align:center"> Protocol </th>
+        <th scope="col" style="text-align:center"> Transformational zone </th>
+        <th scope="col" style="text-align:center"> Left peak force </th>
+        <th scope="col" style="text-align:center"> Right peak force</th>
+      </tr>
+      <tr>
+        <th scope="Row" style="text-align:center"> 1 </th>
+        <td style="text-align:center"> {{ dataArrayHead[4][0] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[4][1] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[4][2] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[4][3] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[4][4] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[4][5] }} kg </td>
+        <td style="text-align:center"> {{ dataArrayHead[4][6] }} kg </td>
+      </tr>
+      <tr>
+        <th scope="Row" style="text-align:center"> 2 </th>
+        <td style="text-align:center"> {{ dataArrayHead[3][0] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[3][1] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[3][2] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[3][3] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[3][4] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[3][5] }} kg </td>
+        <td style="text-align:center"> {{ dataArrayHead[3][6] }} kg </td>
+      </tr>
+      <tr>
+        <th scope="Row" style="text-align:center"> 3 </th>
+        <td style="text-align:center"> {{ dataArrayHead[2][0] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[2][1] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[2][2] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[2][3] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[2][4] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[2][5] }} kg </td>
+        <td style="text-align:center"> {{ dataArrayHead[2][6] }} kg </td>
+      </tr>
+      <tr>
+        <th scope="Row" style="text-align:center"> 4 </th>
+        <td style="text-align:center"> {{ dataArrayHead[1][0] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[1][1] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[1][2] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[1][3] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[1][4] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[1][5] }} kg </td>
+        <td style="text-align:center"> {{ dataArrayHead[1][6] }} kg </td>
+      </tr>
+      <tr>
+        <th scope="Row" style="text-align:center"> 5 </th>
+        <td style="text-align:center"> {{ dataArrayHead[0][0] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[0][1] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[0][2] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[0][3] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[0][4] }} </td>
+        <td style="text-align:center"> {{ dataArrayHead[0][5] }} kg </td>
+        <td style="text-align:center"> {{ dataArrayHead[0][6] }} kg </td>
+      </tr>
+    </table>
   </div>
   </div>
   <br><br>
@@ -39,13 +104,36 @@
   <div class="card-body">
     <h5 class="card-title">Baseline protocols: performance overview</h5>
     <p class="card-text">Baseline protocols allow us to monitor your performance when fresh and give insights into your absolute performance capabilities as well as your performance potential.</p>
-    <canvas id="barChart" width="900" height="500"></canvas>
+    <canvas id="barChart" width="1200" height="500"></canvas>
+    <table id="baselineTable" class="table table-hover">
+    </table>
+    <hr>
+    <h5 class="card-title">Baseline protocols: left vs right transition zones</h5>
+    <p class="card-text">Compare left vs right transition zones from baseline protocols to identify what your performance is limited by.</p>
+    <div class="row align-items-center">
+    <div class="col">
+      <h6> Radar plot: </h6>
+      <canvas id="radarChart" width="600" height="475"></canvas>
+    </div>
+    <div class="col">
+      <h6> Bar plot: </h6>
+      <canvas id="lolliChart" width="600" height="450"></canvas>
+    </div>
+    </div>
     <br>
     <hr>
     <br>
-    <h5 class="card-title">Baseline protocols: left vs right transition zones</h5>
-    <p class="card-text">Compare left vs right transition zones from baseline protocols to identify what your performance is limited by.</p>
-    <canvas id="radarChart" width="900" height="500"></canvas>
+    <div class="row align-items-center">
+    <div class="col">
+      <h6> Front leg: </h6>
+      <canvas id="donutFL" width="300" height="350"></canvas>
+    </div>
+    <div class="col">
+      <h6> Back leg: </h6>
+      <canvas id="donutBL" width="200" height="350"></canvas>
+    </div>
+  </div>
+
   </div>
   </div>
   <br><br>
@@ -56,13 +144,62 @@
     <p class="card-text">Fatigue protocols are designed to investigate how your performance breaks down when you become fatigued, this can help set limits for training intensity and inform decisions about recovery.
     Becoming fatigued impacts your ability to generate force rapidly. The solid lines represent your maximum (fresh) capability, while the dashed lines represent your best efforts in a fatigued state.
     </p>
-    <canvas id="fatigueLineChart" width="900" height="500"></canvas>
+    <div class="row align-items-center">
+    <div class="col">
+      <h6> LHTZ tests: </h6>
+      <canvas id="fatigueLineChartL" width="35%" height="35%"></canvas>
+    </div>
+    <div class="col">
+      <h6> RHTZ tests: </h6>
+      <canvas id="fatigueLineChartR" width="35%" height="35%"></canvas>
+    </div>
+  </div>
     <br>
     <hr>
     <br>
     <h5 class="card-title">Fatigue protocols: asymmetry</h5>
-    <p class="card-text">Compare left vs right transition zones from fatigue protocols to identify limiting factors in fatigued performance.</p>
-    <canvas id="fatigueChart2" width="900" height="500"></canvas>
+    <p class="card-text">Compare left vs right transformational zones from fatigue protocols to identify limiting factors in fatigued performance.</p>
+    <p class="card-text">Asymmetry is positive when right transformational zone is greater than left.</p>
+    <canvas id="fatigueAsymChart" width="1200" height="600"></canvas>
+    <br>
+    <hr>
+    <br>
+    <h5 class="card-title">Fatigue protocols: average asymmetry</h5>
+    <p class="card-text">Average asymmetry is calculated across all fatigue tests.</p>
+    <br>
+    <table id="fatigueTable" class="table table-hover">
+      <tr class="table-secondary">
+        <th scope="col" style="text-align:center">  </th>
+        <th scope="col" style="text-align:center"> 50ms </th>
+        <th scope="col" style="text-align:center"> 100ms </th>
+        <th scope="col" style="text-align:center"> 150ms </th>
+        <th scope="col" style="text-align:center"> 200ms </th>
+        <th scope="col" style="text-align:center"> 250ms </th>
+        <th scope="col" style="text-align:center"> 300ms </th>
+        <th scope="col" style="text-align:center"> Peak force </th>
+      </tr>
+      <tr>
+        <th scope="Row" style="text-align:center"> Avg front leg (% asym) </th>
+        <td style="text-align:center"> {{ flAsym[0]|round }} </td>
+        <td style="text-align:center"> {{ flAsym[1]|round }} </td>
+        <td style="text-align:center"> {{ flAsym[2]|round }} </td>
+        <td style="text-align:center"> {{ flAsym[3]|round }} </td>
+        <td style="text-align:center"> {{ flAsym[4]|round }} </td>
+        <td style="text-align:center"> {{ flAsym[5]|round }} </td>
+        <td style="text-align:center"> {{ flAsym[6]|round }} </td>
+      </tr>
+      <tr>
+        <th scope="Row" style="text-align:center"> Avg back leg (% asym) </th>
+        <td style="text-align:center"> {{ blAsym[0]|round }} </td>
+        <td style="text-align:center"> {{ blAsym[1]|round }} </td>
+        <td style="text-align:center"> {{ blAsym[2]|round }} </td>
+        <td style="text-align:center"> {{ blAsym[3]|round }} </td>
+        <td style="text-align:center"> {{ blAsym[4]|round }} </td>
+        <td style="text-align:center"> {{ blAsym[5]|round }} </td>
+        <td style="text-align:center"> {{ blAsym[6]|round }} </td>
+      </tr>
+
+    </table>
   </div>
   </div>
 
@@ -96,16 +233,34 @@
           ]
       },
       options: {
+        responsive: false,
         scales: {
             y:{
               min:0,
               max:400,
-              text: 'Force (kg)'
+              title: {
+                text: 'Force (kg)',
+                display: true
+              }
+
             }
         }
       }
   });
     </script>
+
+  <script>
+
+    var table = document.getElementById("baselineTable");
+    var header = table.createTHead();
+    var headerRow = header.insertRow(0);
+    var headerLabels = {{ label[0:6]|safe }}
+    var protocolLabels = ['{{ protocol[1]|safe }}', '{{ protocol[6]|safe }}', '{{ protocol[12]|safe }}']
+    for (var i = 0; i < {{ label[0:6]|length }}; i++) {
+      var headerCell = headerRow.insertCell(i);
+      //headerCell.innerHTML = headerLabels[i]
+    };
+</script>
 
     <script>
       const labels = {{ timeExt|safe }}
@@ -124,10 +279,15 @@
           type: "line",
           data: data,
           options: {
+            responsive: false,
             scales: {
                 y:{
                   min:0,
                   max:20,
+                  title:{
+                    text: 'Number of completed tests',
+                    display: true
+                  }
                 }
             }
           }
@@ -140,18 +300,8 @@
   data: {
   labels: {{ radarLabels|safe }},
   datasets: [{
-    label: 'LHTZ',
+    label: 'LHTZ (%BW)',
     data: {{ specificRadarL|safe }},
-    fill: true,
-    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-    borderColor: 'rgb(255, 99, 132)',
-    pointBackgroundColor: 'rgb(255, 99, 132)',
-    pointBorderColor: '#fff',
-    pointHoverBackgroundColor: '#fff',
-    pointHoverBorderColor: 'rgb(255, 99, 132)'
-  }, {
-    label: 'RHTZ',
-    data: {{ specificRadarR|safe }},
     fill: true,
     backgroundColor: 'rgba(54, 162, 235, 0.2)',
     borderColor: 'rgb(54, 162, 235)',
@@ -159,6 +309,16 @@
     pointBorderColor: '#fff',
     pointHoverBackgroundColor: '#fff',
     pointHoverBorderColor: 'rgb(54, 162, 235)'
+  }, {
+    label: 'RHTZ (%BW)',
+    data: {{ specificRadarR|safe }},
+    fill: true,
+    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+    borderColor: 'rgb(255, 99, 132)',
+    pointBackgroundColor: 'rgb(255, 99, 132)',
+    pointBorderColor: '#fff',
+    pointHoverBackgroundColor: '#fff',
+    pointHoverBorderColor: 'rgb(255, 99, 132)'
   }]
 },
   options: {
@@ -166,14 +326,119 @@
       line: {
         borderWidth: 3
       }
-    }
+    },
+    responsive: false
   },
 });
+</script>
+
+<script>
+
+  new Chart(document.getElementById("lolliChart"), {
+      type: "bar",
+      data: {
+          labels: {{ radarLabels|safe }},
+          datasets: [
+              {
+                  label: 'LHTZ (%BW)',
+                  borderWidth: 3,
+                  data: {{ specificRadarL|safe }}
+              },
+              {
+                  label: 'RHTZ (%BW)',
+                  borderWidth: 3,
+                  data: {{ specificRadarR|safe }}
+              }
+          ]
+      },
+      options: {
+        indexAxis: 'y',
+        scales: {
+            x:{
+              min:0,
+              max:400,
+              title:{
+                    text: 'Force (% body weight)',
+                    display: true
+                  }
+            }
+        }
+      }
+  });
+
+</script>
+
+<script>
+   new Chart(document.getElementById("donutFL"),{
+    type: 'doughnut',
+     data: {
+      labels: ['LHTZ', 'RHTZ'],
+      datasets: [
+      {
+        label: 'Peak force (% BW)',
+        data: [{{ specificRadarL[1]|safe }}, {{ specificRadarR[1]|safe }}],
+        backgroundColor: [
+          '#FF6700',
+          '#3090C7'
+        ]
+      },
+      {
+        label: 'Force at 150ms (%BW)',
+        data: [{{ specificRadarL[0]|safe }}, {{ specificRadarR[0]|safe }}],
+        backgroundColor: [
+          '#FFAE42',
+          '#659EC7'
+        ]
+      }
+      ]
+     },
+     options: {
+      rotation: -90,
+      circumference: 180
+     }
+
+   })
+
+
+
+  </script>
+  <script>
+   new Chart(document.getElementById("donutBL"),{
+    type: 'doughnut',
+     data: {
+      labels: ['LHTZ', 'RHTZ'],
+      datasets: [
+      {
+        label: 'Peak force (% BW)',
+        data: [{{ specificRadarL[3]|safe }}, {{ specificRadarR[3]|safe }}],
+        backgroundColor: [
+          '#FF6700',
+          '#3090C7'
+        ]
+      },
+      {
+        label: 'Force at 150ms (%BW)',
+        data: [{{ specificRadarL[2]|safe }}, {{ specificRadarR[2]|safe }}],
+        backgroundColor: [
+          '#FFAE42',
+          '#659EC7'
+        ]
+      }
+      ]
+     },
+     options: {
+      rotation: -90,
+      circumference: 180
+     }
+
+   })
 
     </script>
   <script>
-  var plotObj = {{ fPlotDict|safe }}
-  var labelObj = {{ fLabelDict|safe }}
+  var plotObjL = {{ fPlotDictL|safe }}
+  var labelObjL = {{ fLabelDictL|safe }}
+  var plotObjR = {{ fPlotDictR|safe }}
+  var labelObjR = {{ fLabelDictR|safe }}
   var colors = ['#00FFFF','#00FFFF', '#00FFFF','#00FFFF', '#FFA500','#FFA500', '#FFA500','#FFA500', '#FF00FF','#FF00FF',
                 '#FF00FF','#FF00FF', '#0000FF','#0000FF', '#0000FF','#0000FF', '#008000','#008000', '#008000','#008000',
                 '#FF0000','#FF0000', '#FF0000','#FF0000', '#20B2AA','#20B2AA', '#20B2AA','#20B2AA', '#046307','#046307',
@@ -188,36 +453,145 @@
               0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5, 0,0, 5,5]
 
   const labels2 = ['0ms','50ms','100ms','150ms','200ms','250ms','300ms']
-  var datasetdata = [];
-  var j = 2;
-  var k = 3;
-  for (var i = 0; i < {{ fPlotDict|length }}; i++) {
-    datasetdata[i] = {
-      label: labelObj[i],
-      data: plotObj[i],
+  var datasetdataL = [];
+  var datasetdataR = [];
+  for (var i = 0; i < {{ fPlotDictL|length -1 }}; i++) {
+    datasetdataL[i] = {
+      label: labelObjL[i],
+      data: plotObjL[i],
       borderColor: colors[i],
       borderDash: [10,dash[i]],
       tension: 0.05
     }
   }
-
-  const data2 = {
-    labels: labels2,
-    datasets: datasetdata
+  for (var i = 0; i < {{ fPlotDictR|length -1 }}; i++) {
+    datasetdataR[i] = {
+      label: labelObjR[i],
+      data: plotObjR[i],
+      borderColor: colors[59-i],
+      borderDash: [10,dash[i]],
+      tension: 0.05
+    }
   }
 
-  new Chart(document.getElementById("fatigueLineChart"), {
+  const fDataL = {
+    labels: labels2,
+    datasets: datasetdataL
+  }
+  const fDataR = {
+    labels: labels2,
+    datasets: datasetdataR
+  }
+
+  new Chart(document.getElementById("fatigueLineChartL"), {
       type: "line",
-      data: data2,
+      data: fDataL,
       options: {
+        plugins: {
+          legend: {
+            display: true,
+            position: "chartArea",
+            labels: {
+              textAlign: "left",
+              boxWidth: 25,
+              boxHeight: 5
+            }
+          }
+        },
         scales: {
             y:{
               min:0,
+              title:{
+                    text: 'Force (kg)',
+                    display: true
+                  }
+            },
+            x:{
+              title:{
+                    text: 'Time after start of contraction',
+                    display: true
+                  }
+            }
+        }
+      }
+  });
+  new Chart(document.getElementById("fatigueLineChartR"), {
+      type: "line",
+      data: fDataR,
+      options: {
+        plugins: {
+          legend: {
+            display: true,
+            position: "chartArea",
+            labels: {
+              textAlign: "left",
+              boxWidth: 25,
+              boxHeight: 5
+            }
+          }
+        },
+        scales: {
+            y:{
+              min:0,
+              title:{
+                    text: 'Force (kg)',
+                    display: true
+                  }
+            },
+            x:{
+              title:{
+                    text: 'Time after start of contraction',
+                    display: true
+                  }
             }
         }
       }
   });
   </script>
+
+  <script>
+    var asymObj = {{ fAsymDict|safe }}
+    var asymLabel = {{ fLabelDictL|safe }}
+    var colors2 = ['#338AFF', '#FF7D33', '#FF9C33','#33BBFF',
+                  '#3383FF', '#FF6B33','#FF8A33','#33CEFF']
+
+    const labels3 = ['50ms','100ms','150ms','200ms','250ms','300ms', 'Peak force']
+    var asymDatasetdata = [];
+    for (var i = 0; i < {{ fAsymDict|length }}; i++) {
+      asymDatasetdata[i] = {
+        type: "bar",
+        label: asymLabel[i],
+        data: asymObj[i],
+        backgroundColor: colors2[i]
+    }
+  }
+    const asymData = {
+    labels: labels3,
+    datasets: asymDatasetdata
+  }
+    new Chart(document.getElementById("fatigueAsymChart"), {
+      type: "bar",
+      data: asymData,
+      options: {
+        scales: {
+            y:{
+              title:{
+                    text: 'Asymmetry (%)',
+                    display: true
+                  }
+            },
+            x:{
+              title:{
+                    text: 'Time after start of contraction',
+                    display: true
+                  }
+            }
+        },
+        responsive: false
+      }
+    })
+  </script>
+
 
 
 
