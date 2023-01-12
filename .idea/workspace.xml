@@ -2,18 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="979caf6e-a1cb-4834-bfa4-7a692b335ec3" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/templates/ifu.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/web_app_with_flask.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/web_app_with_flask.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PBI_python_module.py" beforeDir="false" afterPath="$PROJECT_DIR$/PBI_python_module.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotlydash/dashboard.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotlydash/database.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/device.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/player.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/player.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/squad.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/squad.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
