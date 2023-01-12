@@ -1,0 +1,5 @@
+runtime: python38
+entrypoint: gunicorn -b :$PORT main:app
+
+env_variables:
+  DATABASE_URI: mysql+pymysql://root:jqtnnhj2@34.142.85.10/biostrain-test-schema

@@ -7,27 +7,21 @@ from sqlalchemy import Table, create_engine
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 import os
-import pandas as pd
 import PBI_python_module as pb
-import numpy as np
-from datetime import datetime
-import flask.json
-import json
 
 
 
 
 #Create flask instance
-def init_app():
-    app = Flask(__name__)
-    with app.app_context():
-        from plotlydash.dashboard import init_dashboard, init_callbacks
-        app = init_dashboard(app)
-        with app.app_context():
-            init_callbacks(app)
-    return app
-app = init_app()
-#Add database
+
+app = Flask(__name__)
+
+#Add database (Google cloud database)
+#engine = create_engine('mysql+pymysql://root:jqtnnhj2@/userinfo?unix_socket=/cloudsql/biostrian-web-app:europe-west2:biostrain-test-schema')
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@3/userinfo?unix_socket=/cloudsql/biostrian-web-app:europe-west2:biostrain-test-schema'
+
+
+#Add database (local machine database)
 engine = create_engine('mysql+pymysql://root:jqtnnhj2@localhost/userinfo')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost/userinfo'
 app.config['SECRET_KEY'] = os.urandom(12)
@@ -69,7 +63,7 @@ class Testdatalog(db.Model, UserMixin):
     Index = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
     Org = db.Column(db.Text)
     User = db.Column(db.Text)
-    Timestamp = db.Column(db.DateTime)
+    Timestamp = db.Column(db.Date)
     Protocol = db.Column(db.Text)
     TZ = db.Column(db.Text)
     Left0ms = db.Column(db.Float)
@@ -116,13 +110,9 @@ class squadForm(FlaskForm):
     submit = SubmitField("Take me there")
 
 #Create routes (pages)
-# home page
-@app.route('/')
-def home():
-    return render_template('home.html')
 
 #login page
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def login():
     uname = None
     pwd = None
@@ -151,7 +141,7 @@ def login():
 def logout():
     logout_user()
     flash("You have been logged out.")
-    return redirect(url_for('home'))
+    return redirect(url_for('login'))
 
 #user hub page
 @app.route('/dashboard', methods=["GET", "POST"])
@@ -165,75 +155,75 @@ def dashboard():
             }
     playerform.name.choices = [player.User for player in Playerprofiles.query.filter_by(Org='Senior squad (men)').all()]
 
-    if request.method == 'POST' and squadform.validate and squadform.submit:
-        org = request.form['org']
-        pro = request.form['pro']
-        squadTestData = Testdatalog.query.filter_by(Org=org, Protocol=pro)
-        squadPlayers = Playerprofiles.query.filter_by(Org=org)
-        dataArray, dataArrayHead, activeDates,\
-        testsCompleted, players, bestPeak,\
-        best150, FLpeakAsym, BLpeakAsym,\
-        FL150Asym, BL150Asym = pb.squadPlot(squadTestData, squadPlayers, pro)
-        return render_template('squad.html',
-                               pro=pro,
-                               dataArray=dataArray,
-                               dataArrayHead=dataArrayHead,
-                               testsCompleted=testsCompleted,
-                               activeDates=activeDates,
-                               best150=best150,
-                               bestPeak=bestPeak,
-                               players=players,
-                               FL150Asym=FL150Asym,
-                               FLpeakAsym=FLpeakAsym,
-                               BLpeakAsym=BLpeakAsym,
-                               BL150Asym=BL150Asym)
+    if request.method == 'POST' and squadform.validate:
+        try:
+            org = request.form['org']
+            pro = request.form['pro']
+            squadTestData = Testdatalog.query.filter_by(Org=org, Protocol=pro)
+            squadPlayers = Playerprofiles.query.filter_by(Org=org)
+            dataArray, dataArrayHead, countExt, timeStr,\
+            players, bestPeak, best150, FLpeakAsym, \
+            BLpeakAsym, FL150Asym, BL150Asym, = pb.squadPlot(squadTestData, squadPlayers, pro)
+            return render_template('squad.html',
+                                   pro=pro,
+                                   dataArray=dataArray,
+                                   dataArrayHead=dataArrayHead,
+                                   timeStr=timeStr,
+                                   countExt=countExt,
+                                   best150=best150,
+                                   bestPeak=bestPeak,
+                                   players=players,
+                                   FL150Asym=FL150Asym,
+                                   FLpeakAsym=FLpeakAsym,
+                                   BLpeakAsym=BLpeakAsym,
+                                   BL150Asym=BL150Asym)
+        except:
+            name = request.form['name']
+            playerTestData = Testdatalog.query.filter_by(User=name)
+            user = Playerprofiles.query.filter_by(User=name).first()
+            height = user.Height
+            weight = user.Weight
+            baselineMax, timeStr, countExt, proArray, \
+            radarLabels, radarDataL, radarDataR, fPlotDictL, \
+            fLabelDictL, fPlotDictR, fLabelDictR, fAsymDict, \
+            flAsym, blAsym, dataArrayHead = pb.playerPlot(playerTestData, name)
+            results = pb.get_scores(playerTestData)
+            report = pb.generate_report(results)
 
-    if request.method == 'POST' and playerform.validate and playerform.submit:
-        name = request.form['name']
-        playerTestData = Testdatalog.query.filter_by(User=name)
-        user = Playerprofiles.query.filter_by(User=name).first()
-        height = user.Height
-        weight = user.Weight
-        baselineMax, timeArray, countArray, timeExt,\
-        countExt, proArray, radarLabels, radarDataL, radarDataR,\
-        fPlotDictL, fLabelDictL, fPlotDictR, fLabelDictR,\
-        fAsymDict, flAsym, blAsym, dataArrayHead = pb.playerPlot(playerTestData, name)
-        index = [row[0] for row in baselineMax]
-        protocol = [row[1] for row in baselineMax]
-        label = [row[2] for row in baselineMax]
-        score = [row[3] for row in baselineMax]
-        tz = [row[4] for row in baselineMax]
-        timestamp = [row[5] for row in baselineMax]
-        specificScore = [100*(force/weight) for force in score]
-        specificRadarL = [100 * (force / weight) for force in radarDataL]
-        specificRadarR = [100 * (force / weight) for force in radarDataR]
+            index = [row[0] for row in baselineMax]
+            protocol = [row[1] for row in baselineMax]
+            label = [row[2] for row in baselineMax]
+            score = [row[3] for row in baselineMax]
+            tz = [row[4] for row in baselineMax]
+            timestamp = [row[5] for row in baselineMax]
+            specificScore = [100 * (force / weight) for force in score]
+            specificRadarL = [100 * (force / weight) for force in radarDataL]
+            specificRadarR = [100 * (force / weight) for force in radarDataR]
 
-        return render_template('player.html',
-                               name=name,
-                               index=index,
-                               protocol=protocol,
-                               label=label,
-                               score=score,
-                               tz=tz,
-                               timestamp=timestamp,
-                               timeArray=timeArray,
-                               countArray=countArray,
-                               proArray=proArray,
-                               specificScore=specificScore,
-                               radarLabels=radarLabels,
-                               specificRadarL=specificRadarL,
-                               specificRadarR=specificRadarR,
-                               timeExt=timeExt,
-                               countExt=countExt,
-                               fPlotDictL=fPlotDictL,
-                               fLabelDictL=fLabelDictL,
-                               fPlotDictR=fPlotDictR,
-                               fLabelDictR=fLabelDictR,
-                               fAsymDict=fAsymDict,
-                               flAsym=flAsym,
-                               blAsym=blAsym,
-                               dataArrayHead=dataArrayHead
-                               )
+            return render_template('player.html',
+                                   name=name,
+                                   index=index,
+                                   protocol=protocol,
+                                   label=label,
+                                   score=score,
+                                   tz=tz,
+                                   timestamp=timestamp,
+                                   timeStr=timeStr,
+                                   specificScore=specificScore,
+                                   radarLabels=radarLabels,
+                                   specificRadarL=specificRadarL,
+                                   specificRadarR=specificRadarR,
+                                   countExt=countExt,
+                                   fPlotDictL=fPlotDictL,
+                                   fLabelDictL=fLabelDictL,
+                                   fPlotDictR=fPlotDictR,
+                                   fLabelDictR=fLabelDictR,
+                                   fAsymDict=fAsymDict,
+                                   flAsym=flAsym,
+                                   blAsym=blAsym,
+                                   dataArrayHead=dataArrayHead,
+                                   report=report
+                                   )
 
     return render_template('dashboard.html', form=form)
 
@@ -244,13 +234,17 @@ def squadPage():
     return render_template('squad.html')
 
 
-@app.route('/player', methods=["GET", "POST"])
+@app.route('/ifu', methods=["GET", "POST"])
 @login_required
-def player():
-    user = request.playerForm['name']
+def ifu():
 
+    return render_template('ifu.html')
 
-    return render_template('player.html')
+@app.route('/device', methods=["GET", "POST"])
+@login_required
+def device():
+
+    return render_template('device.html')
 
 
 @app.route('/player/<squad>')
@@ -298,5 +292,5 @@ def page_not_found(e):
 
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+#if __name__ == '__main__':
+    #app.run(debug=True)

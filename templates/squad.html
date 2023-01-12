@@ -96,6 +96,7 @@
         <td style="text-align:center"> {{ dataArrayHead[0][6] }} kg </td>
       </tr>
     </table>
+
   </div>
   </div>
   <br><br>
@@ -107,20 +108,25 @@
     <p class="card-text">Take a look at the top performers in your squad.</p>
     <div class="row align-items-center">
     <div class="col">
+      <p class="card-text"> <strong> Force at 150ms </strong></p>
     <canvas id="top150Chart" width="600" height="500"></canvas>
     </div>
     <div class="col">
+      <p class="card-text"> <strong> Peak force </strong></p>
       <canvas id="topPeakChart" width="600" height="500"></canvas>
     </div>
     </div>
     <hr>
     <h5 class="card-title"> Asymmetry </h5>
     <p class="card-text"> Compare front leg & back leg asymmetry between squad members. </p>
+    <p class="card-text">Asymmetry is positive when right transformational zone is greater than left.</p>
     <div class="row align-items-center">
     <div class="col">
+      <p class="card-text"> <strong> Force at 150ms </strong></p>
     <canvas id="top150asymChart" width="600" height="500"></canvas>
     </div>
     <div class="col">
+      <p class="card-text"> <strong> Peak force </strong></p>
       <canvas id="topPeakasymChart" width="600" height="500"></canvas>
     </div>
     </div>
@@ -128,13 +134,15 @@
   </div>
 
 
+
+
   <script>
-      const labels = {{ activeDates|safe }}
+      const labels = {{ timeStr|safe }}
       const data = {
         labels: labels,
         datasets: [{
           label: 'Tests completed',
-          data: {{ testsCompleted|safe }},
+          data: {{ countExt|safe }},
           fill: true,
           borderColor: 'rgb(100, 75, 185)',
           tension: 0.05
@@ -235,11 +243,13 @@
         labels: labels4,
         datasets: [{
           label: 'Front leg',
-          data: {{ FL150Asym|safe }}
+          data: {{ FL150Asym|safe }},
+          backgroundColor: 'rgb(130, 75, 140, 0.75)'
         },
         {
          label: 'Back leg',
-          data: {{ BL150Asym|safe }}
+          data: {{ BL150Asym|safe }},
+          backgroundColor: 'rgb(130, 75, 140, 0.5)'
         }
         ]
       }
@@ -249,8 +259,9 @@
       data: data4,
       options: {
         responsive: false,
+        indexAxis: 'y',
         scales: {
-            y:{
+            x:{
               max:50,
               min:-50,
               title: {
@@ -273,12 +284,12 @@
         datasets: [{
           label: 'Front leg',
           data: {{ FLpeakAsym|safe }},
-          backgroundColor: 'rgb(30, 75, 140)'
+          backgroundColor: 'rgb(180, 75, 70, 0.75)'
         },
         {
          label: 'Back leg',
           data: {{ BLpeakAsym|safe }},
-          backgroundColor: 'rgb(50, 120, 30)'
+          backgroundColor: 'rgb(180, 75, 70, 0.5)'
         }
         ]
       }
@@ -288,8 +299,9 @@
       data: data5,
       options: {
         responsive: false,
+        indexAxis: 'y',
         scales: {
-            y:{
+            x:{
               max:50,
               min:-50,
               title: {
@@ -302,6 +314,7 @@
       }
   });
     </script>
+
 
 
   </body>

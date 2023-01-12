@@ -12,7 +12,11 @@
 <nav class="navbar navbar-expand-lg bg-light">
   <div class="container-fluid">
     <strong>
-            <a class="navbar-brand" href="{{ url_for('home') }}"> Biostrain Hub </a>
+      {% if current_user.is_authenticated %}
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}"> Biostrain Hub </a>
+      {% else %}
+            <a class="navbar-brand" href="{{ url_for('login') }}"> Biostrain Hub </a>
+      {% endif %}
     </strong>
     <a href="https://www.lucidinnovation.com/" target="_blank">
       <img src="{{url_for('static', filename='images/lucid logo-extra-large-no-background.png')}}" class="img-fluid" width="175" height="60">
@@ -30,9 +34,6 @@
           <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
         </li>
         {% else %}
-        <li class="nav-item">
-          <a class="nav-link" aria-current="page" href="{{ url_for('home') }}">Home</a>
-        </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('login') }}">Login</a>
         </li>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Instructions for use</title>
+
+  </head>
+  <body>
+  <div>
+    {% for message in get_flashed_messages() %}
+
+      <div class="alert alert-dark alert-dismissible fade show" role="alert">
+        <strong>{{ message }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+    {% endfor %}
+    <br>
+    <h5> Instructions for Use:</h5>
+    <hr>
+    <div class="container">
+      <object data="{{ url_for('static', filename='ifu/IFU_PBI1_01_1020_G.pdf') }}" type="application/pdf"
+      height="1000" width="1250"></object>
+    </div>
+
+  </body>
+{% endblock %}
+</html>

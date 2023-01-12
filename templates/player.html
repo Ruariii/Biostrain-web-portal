@@ -126,12 +126,13 @@
     <div class="row align-items-center">
     <div class="col">
       <h6> Front leg: </h6>
-      <canvas id="donutFL" width="300" height="350"></canvas>
+      <canvas id="donutFL" width="600" height="250"></canvas>
     </div>
     <div class="col">
       <h6> Back leg: </h6>
-      <canvas id="donutBL" width="200" height="350"></canvas>
+      <canvas id="donutBL" width="600" height="250"></canvas>
     </div>
+      <br><br>
   </div>
 
   </div>
@@ -202,7 +203,15 @@
     </table>
   </div>
   </div>
+  <br><br>
 
+  <div class="card">
+  <h5 class="card-header">Featured: Summary report</h5>
+  <div class="card-body" style="text-align:center">
+  <p class="card-text" style="text-align:left"> View best, worst and average peak force scores across each protocol, transition zone and leg: </p>
+     {{ report|safe }}
+  </div>
+  </div>
 
 
     <script>
@@ -263,7 +272,7 @@
 </script>
 
     <script>
-      const labels = {{ timeExt|safe }}
+      const labels = {{ timeStr|safe }}
       const data = {
         labels: labels,
         datasets: [{
@@ -393,6 +402,7 @@
       ]
      },
      options: {
+      responsive: false,
       rotation: -90,
       circumference: 180
      }
@@ -427,6 +437,7 @@
       ]
      },
      options: {
+      responsive: false,
       rotation: -90,
       circumference: 180
      }

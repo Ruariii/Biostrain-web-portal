@@ -73,7 +73,7 @@ def playerPlot(playerTestData, name):
         for key in baselineDict[protocol]:
             if "150" in key or "peak" in key:
                 maxval = max(baselineDict[protocol][key])
-                maxidx = np.argmax(baselineDict[protocol][key])
+                maxidx = np.argmax((baselineDict[protocol][key]))
                 maxvaltz = baselineDict[protocol]['TZ'][maxidx]
                 maxvaltime = baselineDict[protocol]['Timestamp'][maxidx]
 
@@ -100,9 +100,10 @@ def playerPlot(playerTestData, name):
 
     activityLog = {name: {}}
     for row in dataArray:
-        activityLog[name][row[3]] = {}
-        activityLog[name][row[3]]['protocol'] = []
-        activityLog[name][row[3]]['count'] = []
+        date = row[3]
+        activityLog[name][date] = {}
+        activityLog[name][date]['protocol'] = []
+        activityLog[name][date]['count'] = []
     for key in activityLog[name]:
         counter = 0
         for row in dataArray:
@@ -120,19 +121,20 @@ def playerPlot(playerTestData, name):
         countArray.append(activityLog[name][time]['count'])
         proArray.append(activityLog[name][time]['protocol'])
 
-    a = datetime.datetime.today()
+    a = datetime.date.today()
 
     timeExt = timeArray
     countExt = countArray
-    strTime = timeExt[len(timeArray) - 1]
-    timeObj = datetime.datetime.strptime(strTime, '%d/%m/%Y')
+    timeObj = timeExt[len(timeArray) - 1]
     x = 1
     while timeObj < a:
         timeObj = timeObj + datetime.timedelta(days=x)
-        strTime = datetime.datetime.strftime(timeObj, '%d/%m/%Y')
-        timeExt.append(strTime)
+        timeExt.append(timeObj)
         countExt.append(0)
         x += 1
+    timeStr = [time.strftime('%Y-%m-%d') for time in timeExt]
+
+
 
 
 
@@ -304,8 +306,7 @@ def playerPlot(playerTestData, name):
         flAsym.append(sum(avgFL) / len(flFatigue))
         blAsym.append(sum(avgBL) / len(blFatigue))
 
-    return baselineMax, timeArray, countArray, timeExt, \
-           countExt, proArray, radarLabels, radarDataL, radarDataR, fPlotDictL,\
+    return baselineMax, timeStr, countExt, proArray, radarLabels, radarDataL, radarDataR, fPlotDictL,\
            fLabelDictL, fPlotDictR, fLabelDictR, fAsymDict, flAsym, blAsym, dataArrayHead
 
 
@@ -322,6 +323,7 @@ def squadPlot(squadTestData, squadPlayers, pro):
     # get dataArray - all tests
     dataArray = []
     infoArray = []
+    players2 = []
     for i in squadTestData:
         dataArray.append((i.Index, i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
                          i.Left0ms, i.Left50ms, i.Left100ms,
@@ -332,6 +334,7 @@ def squadPlot(squadTestData, squadPlayers, pro):
                          i.Rightpeak, i.Combined0ms, i.Combined50ms,
                          i.Combined100ms, i.Combined150ms, i.Combined200ms,
                          i.Combined250ms, i.Combined300ms, i.Combinedpeak))
+        players2.append(i.User)
 
         infoArray.append((i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
                          i.Leftpeak, i.Rightpeak))
@@ -342,31 +345,41 @@ def squadPlot(squadTestData, squadPlayers, pro):
     else:
         dataArrayHead = infoArray[0:end]
 
-
-    # get activity
-    activityLog = {}
+    activityLog = {pro: {}}
     for row in dataArray:
-        activityLog[row[3]] = 0
-
-    a = datetime.datetime.today()
-    activeDates = list(activityLog.keys())
-    lastAct = activeDates[len(activeDates)-1]
-    timeObj = datetime.datetime.strptime(lastAct, '%d/%m/%Y')
-    x=0
-    while timeObj < a:
-        timeObj = timeObj + datetime.timedelta(days=x)
-        strTime = datetime.datetime.strftime(timeObj, '%d/%m/%Y')
-        activityLog[strTime] = 0
-        x+=1
-    for key in activityLog:
-        count=0
+        date = row[3]
+        activityLog[pro][date] = {}
+        activityLog[pro][date]['protocol'] = []
+        activityLog[pro][date]['count'] = []
+    for key in activityLog[pro]:
+        counter = 0
         for row in dataArray:
             if row[3] == key:
-                count+=1
-        activityLog[key]=count
+                counter += 1
+                pro = row[4]
+            else:
+                continue
+        activityLog[pro][key]['count'] = counter
 
-    activeDates = list(activityLog.keys())
-    testsCompleted = [activityLog[key] for key in activeDates]
+    timeArray = [time for time in activityLog[pro]]
+    countArray, proArray = [], []
+    for time in timeArray:
+        countArray.append(activityLog[pro][time]['count'])
+
+    a = datetime.date.today()
+
+    timeExt = timeArray
+    countExt = countArray
+    timeObj = timeExt[len(timeArray) - 1]
+    x = 1
+    while timeObj < a:
+        timeObj = timeObj + datetime.timedelta(days=x)
+        timeExt.append(timeObj)
+        countExt.append(0)
+        x += 1
+    timeStr = [time.strftime('%Y-%m-%d') for time in timeExt]
+
+
 
     # get best/worst scores from each protocol
     best150, bestPeak = [], []
@@ -422,4 +435,93 @@ def squadPlot(squadTestData, squadPlayers, pro):
         else:
             RHTZdata.append(row)
 
-    return dataArray, dataArrayHead, activeDates, testsCompleted, players, bestPeak, best150, FLpeakAsym, BLpeakAsym, FL150Asym, BL150Asym
+    return dataArray, dataArrayHead, countExt, timeStr, players,\
+           bestPeak, best150, FLpeakAsym, BLpeakAsym, FL150Asym, BL150Asym,
+
+from statistics import mean
+
+def get_scores(rows):
+
+  # create a dictionary to store the scores for each protocol
+  scores = {}
+
+  # iterate through the rows of data
+  for row in rows:
+    # get the protocol name and score
+    protocol = row.Protocol
+    tz = row.TZ
+    leftScore = row.Leftpeak
+    rightScore = row.Rightpeak
+
+    # if the protocol is not in the dictionary, add it and create a new list for the scores
+    if protocol not in scores:
+      scores[protocol] = {}
+    if tz not in scores[protocol]:
+      scores[protocol][tz] = {}
+      scores[protocol][tz]['Left leg'] = []
+      scores[protocol][tz]['Right leg'] = []
+
+      # add the score to the list for the protocol
+    scores[protocol][tz]['Left leg'].append(leftScore)
+    scores[protocol][tz]['Right leg'].append(rightScore)
+  # create a new dictionary to store the best, worst, and average scores for each protocol
+  results = {}
+
+  for protocol, tzs in scores.items():
+      if protocol not in results:
+          results[protocol] = {}
+
+      for tz, legs in tzs.items():
+          results[protocol][tz] = {}
+          for leg, score_list in legs.items():
+            # Calculate best, worst, and average scores for the protocol tz and leg
+              best = max(score_list)
+              worst = min(score_list)
+              average = mean(score_list)
+            # Add the results to the dictionary
+              results[protocol][tz][leg] = (best, worst, average)
+
+  # return the results
+  return results
+
+def generate_report(results):
+  # create the table header
+  report = """
+  <table class="table table-hover">
+    <tr class="table-secondary">
+      <th>Protocol</th>
+      <th>Transition zone</th>
+      <th>Leg</th>
+      <th>Best Score (kg)</th>
+      <th>Worst Score (kg)</th>
+      <th>Average Score (kg)</th>
+    </tr>
+  """
+
+  # create a string to hold the final report
+  final_report = report
+
+  # iterate through the results and add a row for each protocol and time zone
+  for protocol, tzs in results.items():
+      for tz, legs in tzs.items():
+          for leg, tup in legs.items():
+            # create a row for the protocol and time zone
+            row = """
+            <tr>
+              <td>{protocol}</td>
+              <td>{tz}</td>
+              <td>{leg}</td>
+              <td>{best}</td>
+              <td>{worst}</td>
+              <td>{average}</td>
+            </tr>
+            """
+            final_report += row.format(protocol=protocol, tz=tz, leg=leg, best=round(tup[0],1), worst=round(tup[1],1), average=round(tup[2],1))
+
+  # close the table
+  final_report += "</table>"
+
+  # return the final report
+  return final_report
+
+
