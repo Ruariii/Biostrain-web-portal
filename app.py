@@ -20,10 +20,17 @@ app = Flask(__name__)
 #engine = create_engine('mysql+pymysql://root:jqtnnhj2@/userinfo?unix_socket=/cloudsql/biostrian-web-app:europe-west2:biostrain-test-schema')
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@3/userinfo?unix_socket=/cloudsql/biostrian-web-app:europe-west2:biostrain-test-schema'
 
+database = os.environ(['MYSQL_DATABASE'])
+user = os.environ(['MYSQL_USER'])
+password = os.environ(['MYSQL_PASSWORD'])
+root_password = os.environ(['MYSQL_ROOT_PASSWORD'])
+host = os.environ(['MYSQL_HOST'])
+port = os.environ(['MYSQL_PORT'])
+
 
 #Add database (local machine database)
-engine = create_engine('mysql+pymysql://root:jqtnnhj2@localhost/userinfo')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost/userinfo'
+engine = create_engine(f'mysql+pymysql://{user}:{root_password}@localhost/{database}')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{user}:{root_password}@localhost/{database}'
 app.config['SECRET_KEY'] = os.urandom(12)
 #Initialise database
 with app.app_context():
