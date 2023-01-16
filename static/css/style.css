@@ -1,6 +1,9 @@
-body {
-    'background': '#f4f4f4';
-}
-#demo{
-     'color:darkblue'
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    border: 0;
+    overflow: hidden;
+    display: block;
+    background: #f4f4f4;
 }
