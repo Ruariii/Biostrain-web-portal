@@ -28,8 +28,8 @@ port = os.environ['MYSQL_PORT']
 
 
 #Add database (local machine database)
-engine = create_engine(f'mysql+pymysql://{user}:{root_password}@{port}/{database}')
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{user}:{root_password}@{port}/{database}'
+engine = create_engine(f'mysql+pymysql://{user}:{password}@{port}/{database}')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{user}:{password}@{port}/{database}'
 app.config['SECRET_KEY'] = os.urandom(12)
 #Initialise database
 with app.app_context():
