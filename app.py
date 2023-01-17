@@ -4,6 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, SelectField
 from wtforms.validators import DataRequired
 from sqlalchemy import Table, create_engine
+import mysql.connector
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 import os
@@ -17,9 +18,9 @@ import PBI_python_module as pb
 app = Flask(__name__)
 
 #Add database (local machine database)
-engine = create_engine('mysql+pymysql://root:jqtnnhj2@localhost/userinfo')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost/userinfo'
-#Render MySQL Docker connection
+# engine = create_engine('mysql+pymysql://root:jqtnnhj2@localhost/userinfo')
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost/userinfo'
+# #Render MySQL Docker connection
 # database = os.environ['MYSQL_DATABASE']
 # user = os.environ['MYSQL_USER']
 # password = os.environ['MYSQL_PASSWORD']
@@ -27,7 +28,28 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost
 # port = os.environ['MYSQL_PORT']
 # engine = create_engine(f'mysql+pymysql://{user}:{password}@{port}/{database}')
 # app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{user}:{password}@{port}/{database}'
+
+
+# connect to Render database OR local database
+def connectDB():
+    try:
+        database = os.environ['MYSQL_DATABASE']
+        user = os.environ['MYSQL_USER']
+        password = os.environ['MYSQL_PASSWORD']
+        root_password = os.environ['MYSQL_ROOT_PASSWORD']
+        port = os.environ['MYSQL_PORT']
+        engine = create_engine(f'mysql+pymysql://{user}:{password}@{port}/{database}')
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{user}:{password}@{port}/{database}'
+        # test connection
+        connection = mysql.connector.connect(user=user, password=password, host=port, database=database)
+    except:
+        engine = create_engine('mysql+pymysql://root:jqtnnhj2@localhost/userinfo')
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost/userinfo'
+    return engine
+
+engine = connectDB()
 app.config['SECRET_KEY'] = os.urandom(12)
+
 #Initialise database
 with app.app_context():
     db = SQLAlchemy(app)
