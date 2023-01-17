@@ -104,19 +104,28 @@
   <div class="card-body">
     <h5 class="card-title">Baseline protocols: performance overview</h5>
     <p class="card-text">Baseline protocols allow us to monitor your performance when fresh and give insights into your absolute performance capabilities as well as your performance potential.</p>
-    <canvas id="barChart" width="100%" height="40%"></canvas>
+    <div class="col">
+     <canvas id="barChart" width="100%" height="40%"></canvas>
+    </div>
     <table id="baselineTable" class="table table-hover">
     </table>
     <hr>
     <h5 class="card-title">Baseline protocols: left vs right transition zones</h5>
     <p class="card-text">Compare left vs right transition zones from baseline protocols to identify what your performance is limited by.</p>
+    <p class="card-text">The graphs below show your maximum baseline test scores as a percentage of your body weight (%BW).</p>
     <div class="row align-items-center">
-    <div class="col">
+    <div class="col-sm-6 col-md-6 col-lg-6">
       <h6> Radar plot: </h6>
+    </div>
+    <div class="col-sm-6 col-md-6 col-lg-6">
+      <h6> Bar plot: </h6>
+    </div>
+    </div>
+    <div class="row align-items-center">
+    <div class="col-sm-6 col-md-6 col-lg-6">
       <canvas id="radarChart" width="50%" height="35%"></canvas>
     </div>
-    <div class="col">
-      <h6> Bar plot: </h6>
+    <div class="col-sm-6 col-md-6 col-lg-6">
       <canvas id="lolliChart" width="50%" height="35%"></canvas>
     </div>
     </div>
@@ -124,11 +133,13 @@
     <hr>
     <br>
     <div class="row align-items-center">
-    <div class="col">
+      <h5 class="card-title">Baseline protocols: front leg vs back leg asymmetry</h5>
+      <p class="card-text">Front leg asymmetry can be different to back leg asymmetry. Large disparities could be an indicator that your performance is being significantly inhibited.</p>
+    <div class="col-sm-6 col-md-6 col-lg-6">
       <h6> Front leg: </h6>
       <canvas id="donutFL" width="50%" height="35%"></canvas>
     </div>
-    <div class="col">
+      <div class="col-sm-6 col-md-6 col-lg-6">
       <h6> Back leg: </h6>
       <canvas id="donutBL" width="50%" height="35%"></canvas>
     </div>
@@ -146,11 +157,11 @@
     Becoming fatigued impacts your ability to generate force rapidly. The solid lines represent your maximum (fresh) capability, while the dashed lines represent your best efforts in a fatigued state.
     </p>
     <div class="row align-items-center">
-    <div class="col">
+    <div class="col-sm-6 col-md-6 col-lg-6">
       <h6> LHTZ tests: </h6>
       <canvas id="fatigueLineChartL" width="35%" height="35%"></canvas>
     </div>
-    <div class="col">
+    <div class="col-sm-6 col-md-6 col-lg-6">
       <h6> RHTZ tests: </h6>
       <canvas id="fatigueLineChartR" width="35%" height="35%"></canvas>
     </div>
@@ -161,7 +172,9 @@
     <h5 class="card-title">Fatigue protocols: asymmetry</h5>
     <p class="card-text">Compare left vs right transformational zones from fatigue protocols to identify limiting factors in fatigued performance.</p>
     <p class="card-text">Asymmetry is positive when right transformational zone is greater than left.</p>
-    <canvas id="fatigueAsymChart" width="100%" height="40%"</canvas>
+    <div class="col">
+      <canvas id="fatigueAsymChart" width="100%" height="40%"</canvas>
+    </div>
     <br>
     <hr>
     <br>
@@ -242,7 +255,6 @@
           ]
       },
       options: {
-        responsive: false,
         scales: {
             y:{
               min:0,
@@ -288,7 +300,6 @@
           type: "line",
           data: data,
           options: {
-            responsive: false,
             scales: {
                 y:{
                   min:0,
@@ -336,7 +347,6 @@
         borderWidth: 3
       }
     },
-    responsive: false
   },
 });
 </script>
@@ -402,7 +412,6 @@
       ]
      },
      options: {
-      responsive: false,
       rotation: -90,
       circumference: 180
      }
@@ -437,7 +446,6 @@
       ]
      },
      options: {
-      responsive: false,
       rotation: -90,
       circumference: 180
      }
@@ -598,7 +606,6 @@
                   }
             }
         },
-        responsive: false
       }
     })
   </script>
