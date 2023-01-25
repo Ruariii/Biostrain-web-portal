@@ -10,25 +10,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import os
 import PBI_python_module as pb
 
-
-
-
 #Create flask instance
 
 app = Flask(__name__)
-
-#Add database (local machine database)
-# engine = create_engine('mysql+pymysql://root:jqtnnhj2@localhost/userinfo')
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost/userinfo'
-# #Render MySQL Docker connection
-# database = os.environ['MYSQL_DATABASE']
-# user = os.environ['MYSQL_USER']
-# password = os.environ['MYSQL_PASSWORD']
-# root_password = os.environ['MYSQL_ROOT_PASSWORD']
-# port = os.environ['MYSQL_PORT']
-# engine = create_engine(f'mysql+pymysql://{user}:{password}@{port}/{database}')
-# app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{user}:{password}@{port}/{database}'
-
 
 # connect to Render database OR local database
 def connectDB():
@@ -40,14 +24,14 @@ def connectDB():
         port = os.environ['MYSQL_PORT']
         engine = create_engine(f'mysql+pymysql://{user}:{password}@{port}/{database}')
         app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{user}:{password}@{port}/{database}'
-        # test connection
-        connection = mysql.connector.connect(user=user, password=password, host=port, database=database)
+        debugStatus = False
     except:
         engine = create_engine('mysql+pymysql://root:jqtnnhj2@localhost/userinfo')
         app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost/userinfo'
-    return engine
+        debugStatus = True
+    return engine, debugStatus
 
-engine = connectDB()
+engine, debugStatus = connectDB()
 app.config['SECRET_KEY'] = os.urandom(12)
 
 #Initialise database
@@ -212,40 +196,29 @@ def dashboard():
             radarLabels, radarDataL, radarDataR, fPlotDictL, \
             fLabelDictL, fPlotDictR, fLabelDictR, fAsymDict, \
             flAsym, blAsym, dataArrayHead = pb.playerPlot(playerTestData, name)
+            sessions, lastBaseline, baselineList, lastFatigue, fatigueList = pb.getPlayerDict(playerTestData)
+            LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
+            LHTZ_fatigue, RHTZ_fatigue = pb.getPlayerTzDict(sessions, lastFatigue)
+            baselineHistoricalData = pb.getHistoricalDict(sessions, baselineList)
+            fatigueHistoricalData = pb.getHistoricalDict(sessions, fatigueList)
+            lastBaselineList = lastBaseline.split(':')
+            lastFatigueList = lastFatigue.split(':')
             results = pb.get_scores(playerTestData)
             report = pb.generate_report(results)
 
-            index = [row[0] for row in baselineMax]
-            protocol = [row[1] for row in baselineMax]
-            label = [row[2] for row in baselineMax]
-            score = [row[3] for row in baselineMax]
-            tz = [row[4] for row in baselineMax]
-            timestamp = [row[5] for row in baselineMax]
-            specificScore = [100 * (force / weight) for force in score]
-            specificRadarL = [100 * (force / weight) for force in radarDataL]
-            specificRadarR = [100 * (force / weight) for force in radarDataR]
-
             return render_template('player.html',
+                                   sessions=sessions,
+                                   lastBaselineList=lastBaselineList,
+                                   lastFatigueList=lastFatigueList,
+                                   LHTZ_baseline=LHTZ_baseline,
+                                   RHTZ_baseline=RHTZ_baseline,
+                                   LHTZ_fatigue=LHTZ_fatigue,
+                                   RHTZ_fatigue=RHTZ_fatigue,
+                                   baselineHistoricalData=baselineHistoricalData,
+                                   fatigueHistoricalData=fatigueHistoricalData,
                                    name=name,
-                                   index=index,
-                                   protocol=protocol,
-                                   label=label,
-                                   score=score,
-                                   tz=tz,
-                                   timestamp=timestamp,
-                                   timeStr=timeStr,
-                                   specificScore=specificScore,
-                                   radarLabels=radarLabels,
-                                   specificRadarL=specificRadarL,
-                                   specificRadarR=specificRadarR,
                                    countExt=countExt,
-                                   fPlotDictL=fPlotDictL,
-                                   fLabelDictL=fLabelDictL,
-                                   fPlotDictR=fPlotDictR,
-                                   fLabelDictR=fLabelDictR,
-                                   fAsymDict=fAsymDict,
-                                   flAsym=flAsym,
-                                   blAsym=blAsym,
+                                   timeStr=timeStr,
                                    dataArrayHead=dataArrayHead,
                                    report=report
                                    )
@@ -315,7 +288,5 @@ def page_not_found(e):
     return render_template('500.html'), 500
 
 
-
-
-#if __name__ == '__main__':
-    #app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=debugStatus)

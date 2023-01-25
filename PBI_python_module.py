@@ -1,7 +1,367 @@
 import numpy as np
+import pandas as pd
 import datetime
+import time
 
 ####################################################################################################
+
+def getPlayerDict(playerTestData):
+    cols = ["Index", "Org", "User", "Timestamp", "Protocol", "TZ", "Left0ms", "Left50ms", "Left100ms", "Left150ms",
+            "Left200ms", "Left250ms", "Left300ms", "Leftpeak", "Right0ms", "Right50ms", "Right100ms", "Right150ms",
+            "Right200ms", "Right250ms", "Right300ms", "Rightpeak", "Combined0ms", "Combined50ms", "Combined100ms",
+            "Combined150ms", "Combined200ms", "Combined250ms", "Combined300ms", "Combinedpeak"]
+
+    # get dataArray - all tests
+    data = []
+    for i in playerTestData:
+        data.append((i.Index, i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
+                          i.Left0ms, i.Left50ms, i.Left100ms,
+                          i.Left150ms, i.Left200ms, i.Left250ms,
+                          i.Left300ms, i.Leftpeak, i.Right0ms,
+                          i.Right50ms, i.Right100ms, i.Right150ms,
+                          i.Right200ms, i.Right250ms, i.Right300ms,
+                          i.Rightpeak, i.Combined0ms, i.Combined50ms,
+                          i.Combined100ms, i.Combined150ms, i.Combined200ms,
+                          i.Combined250ms, i.Combined300ms, i.Combinedpeak))
+
+
+    timestamps = [time.mktime(row[3].timetuple()) for row in data]
+    minute = 60
+    timeadj = []
+    j = 0
+    for i in range(len(timestamps)):
+        timeadj.append(round(timestamps[i] + (minute * j)))
+        j += 1
+
+    sessions = {}
+    i=0
+    for row in data:
+        date = datetime.datetime.fromtimestamp(timeadj[i]).strftime("%Y-%m-%d")
+        protocol = row[4]
+        sessions[f'{protocol}: {date}'] = {}
+        sessions[f'{protocol}: {date}']['index'] = []
+        sessions[f'{protocol}: {date}']['TZ'] = []
+        sessions[f'{protocol}: {date}']['Front leg force at 150ms'] = []
+        sessions[f'{protocol}: {date}']['Front leg peak force'] = []
+        sessions[f'{protocol}: {date}']['Back leg force at 150ms'] = []
+        sessions[f'{protocol}: {date}']['Back leg peak force'] = []
+        sessions[f'{protocol}: {date}']['Crush factor at 150ms'] = []
+        sessions[f'{protocol}: {date}']['Peak crush factor'] = []
+        i+=1
+
+    i = 0
+    for row in data:
+        date = datetime.datetime.fromtimestamp(timeadj[i]).strftime("%Y-%m-%d")
+        protocol = row[4]
+        index = row[0]
+        tz = row[5]
+        if tz == 'LHTZ':
+            fl150 = round(row[9], 1)
+            flpeak = round(row[13], 1)
+            bl150 = round(row[17], 1)
+            blpeak = round(row[21], 1)
+        else:
+            bl150 = round(row[9], 1)
+            blpeak = round(row[13], 1)
+            fl150 = round(row[17], 1)
+            flpeak = round(row[21], 1)
+
+        cr150 = round((fl150 + bl150), 1)
+        crpeak = round((flpeak + blpeak), 1)
+
+        j = i + 1
+        if j == len(data):
+            sessions[f'{protocol}: {date}']['index'].append(index)
+            sessions[f'{protocol}: {date}']['TZ'].append(tz)
+            sessions[f'{protocol}: {date}']['Front leg force at 150ms'].append(fl150)
+            sessions[f'{protocol}: {date}']['Front leg peak force'].append(flpeak)
+            sessions[f'{protocol}: {date}']['Back leg force at 150ms'].append(bl150)
+            sessions[f'{protocol}: {date}']['Back leg peak force'].append(blpeak)
+            sessions[f'{protocol}: {date}']['Crush factor at 150ms'].append(cr150)
+            sessions[f'{protocol}: {date}']['Peak crush factor'].append(crpeak)
+            break
+
+        else:
+            sessions[f'{protocol}: {date}']['index'].append(index)
+            sessions[f'{protocol}: {date}']['TZ'].append(tz)
+            sessions[f'{protocol}: {date}']['Front leg force at 150ms'].append(fl150)
+            sessions[f'{protocol}: {date}']['Front leg peak force'].append(flpeak)
+            sessions[f'{protocol}: {date}']['Back leg force at 150ms'].append(bl150)
+            sessions[f'{protocol}: {date}']['Back leg peak force'].append(blpeak)
+            sessions[f'{protocol}: {date}']['Crush factor at 150ms'].append(cr150)
+            sessions[f'{protocol}: {date}']['Peak crush factor'].append(crpeak)
+            i+=1
+            continue
+
+    sessionList = []
+    fatigueList, baselineList = [], []
+    for key in sessions:
+        sessionList.append(key)
+    lastFatigue = ''
+    lastBaseline = ''
+    for session in reversed(sessionList):
+        if 'fatigue' in session or 'sprint' in session:
+            fatigueList.append(session)
+            if lastFatigue == '':
+                lastFatigue = session
+        else:
+            baselineList.append(session)
+            if lastBaseline == '':
+                lastBaseline = session
+
+
+
+    return sessions, lastBaseline, baselineList, lastFatigue, fatigueList
+
+def getPlayerTzDict(sessions, lastBaseline):
+    data = sessions[lastBaseline]
+
+    # Pull out traces
+    tzs = data['TZ']
+    fl150 = data['Front leg force at 150ms']
+    flpeak = data['Front leg peak force']
+    bl150 = data['Back leg force at 150ms']
+    blpeak = data['Back leg peak force']
+    cr150 = data['Crush factor at 150ms']
+    crpeak = data['Peak crush factor']
+
+    # Separate transition zones
+    indexL, indexR = [], []
+    fl150L, fl150R = [], []
+    flpeakL, flpeakR = [], []
+    bl150L, bl150R = [], []
+    blpeakL, blpeakR = [], []
+    cr150L, cr150R = [], []
+    crpeakL, crpeakR = [], []
+    li, ri = 0, 0
+    for i in range(len(tzs)):
+        if tzs[i] == 'LHTZ':
+            li += 1
+            indexL.append(li)
+            fl150L.append(fl150[i])
+            flpeakL.append(flpeak[i])
+            bl150L.append(bl150[i])
+            blpeakL.append(blpeak[i])
+            cr150L.append(cr150[i])
+            crpeakL.append(crpeak[i])
+        else:
+            ri += 1
+            indexR.append(ri)
+            fl150R.append(fl150[i])
+            flpeakR.append(flpeak[i])
+            bl150R.append(bl150[i])
+            blpeakR.append(blpeak[i])
+            cr150R.append(cr150[i])
+            crpeakR.append(crpeak[i])
+
+    # Get max and avg for each metric
+    fl150Lmax = [max(fl150L)]
+    bl150Lmax = [max(bl150L)]
+    cr150Lmax = [max(cr150L)]
+    fl150Rmax = [max(fl150R)]
+    bl150Rmax = [max(bl150R)]
+    cr150Rmax = [max(cr150R)]
+    flpeakLmax = [max(flpeakL)]
+    blpeakLmax = [max(blpeakL)]
+    crpeakLmax = [max(crpeakL)]
+    flpeakRmax = [max(flpeakR)]
+    blpeakRmax = [max(blpeakR)]
+    crpeakRmax = [max(crpeakR)]
+    fl150Lavg = [sum(fl150L) / len(fl150L)]
+    bl150Lavg = [sum(bl150L) / len(bl150L)]
+    cr150Lavg = [sum(cr150L) / len(cr150L)]
+    fl150Ravg = [sum(fl150R) / len(fl150R)]
+    bl150Ravg = [sum(bl150R) / len(bl150R)]
+    cr150Ravg = [sum(cr150R) / len(cr150R)]
+    flpeakLavg = [sum(flpeakL) / len(flpeakL)]
+    blpeakLavg = [sum(blpeakL) / len(blpeakL)]
+    crpeakLavg = [sum(crpeakL) / len(crpeakL)]
+    flpeakRavg = [sum(flpeakR) / len(flpeakR)]
+    blpeakRavg = [sum(blpeakR) / len(blpeakR)]
+    crpeakRavg = [sum(crpeakR) / len(crpeakR)]
+
+    # Create RHTZ and LHTZ dicts
+    LHTZ_data = {
+        'session': {
+            'index': indexL,
+            'Front leg force at 150ms': fl150L,
+            'Front leg peak force': flpeakL,
+            'Back leg force at 150ms': bl150L,
+            'Back leg peak force': blpeakL,
+            'Crush factor at 150ms': cr150L,
+            'Peak crush factor': crpeakL
+        },
+        'max': {
+            'index': [1],
+            'Front leg force at 150ms': fl150Lmax,
+            'Front leg peak force': flpeakLmax,
+            'Back leg force at 150ms': bl150Lmax,
+            'Back leg peak force': blpeakLmax,
+            'Crush factor at 150ms': cr150Lmax,
+            'Peak crush factor': crpeakLmax
+        },
+        'avg': {
+            'index': [1],
+            'Front leg force at 150ms': fl150Lavg,
+            'Front leg peak force': flpeakLavg,
+            'Back leg force at 150ms': bl150Lavg,
+            'Back leg peak force': blpeakLavg,
+            'Crush factor at 150ms': cr150Lavg,
+            'Peak crush factor': crpeakLavg
+        }
+    }
+
+    RHTZ_data = {
+        'session': {
+            'index': indexR,
+            'Front leg force at 150ms': fl150R,
+            'Front leg peak force': flpeakR,
+            'Back leg force at 150ms': bl150R,
+            'Back leg peak force': blpeakR,
+            'Crush factor at 150ms': cr150R,
+            'Peak crush factor': crpeakR
+        },
+        'max': {
+            'index': [2],
+            'Front leg force at 150ms': fl150Rmax,
+            'Front leg peak force': flpeakRmax,
+            'Back leg force at 150ms': bl150Rmax,
+            'Back leg peak force': blpeakRmax,
+            'Crush factor at 150ms': cr150Rmax,
+            'Peak crush factor': crpeakRmax
+        },
+        'avg': {
+            'index': [2],
+            'Front leg force at 150ms': fl150Ravg,
+            'Front leg peak force': flpeakRavg,
+            'Back leg force at 150ms': bl150Ravg,
+            'Back leg peak force': blpeakRavg,
+            'Crush factor at 150ms': cr150Ravg,
+            'Peak crush factor': crpeakRavg
+        }
+    }
+
+    return LHTZ_data, RHTZ_data
+
+def getHistoricalDict(sessions, baselineList):
+    baselineData = {}
+    li, ri = 0, 0
+    for key in reversed(baselineList):
+        baselineData[key] = {}
+        # Pull out traces
+        tzs = sessions[key]['TZ']
+        fl150 = sessions[key]['Front leg force at 150ms']
+        flpeak = sessions[key]['Front leg peak force']
+        bl150 = sessions[key]['Back leg force at 150ms']
+        blpeak = sessions[key]['Back leg peak force']
+        cr150 = sessions[key]['Crush factor at 150ms']
+        crpeak = sessions[key]['Peak crush factor']
+
+        # Separate transition zones
+        indexL, indexR = [], []
+        fl150L, fl150R = [], []
+        flpeakL, flpeakR = [], []
+        bl150L, bl150R = [], []
+        blpeakL, blpeakR = [], []
+        cr150L, cr150R = [], []
+        crpeakL, crpeakR = [], []
+        for i in range(len(tzs)):
+            if tzs[i] == 'LHTZ':
+                li += 1
+                indexL.append(li)
+                fl150L.append(fl150[i])
+                flpeakL.append(flpeak[i])
+                bl150L.append(bl150[i])
+                blpeakL.append(blpeak[i])
+                cr150L.append(cr150[i])
+                crpeakL.append(crpeak[i])
+            else:
+                ri += 1
+                indexR.append(ri)
+                fl150R.append(fl150[i])
+                flpeakR.append(flpeak[i])
+                bl150R.append(bl150[i])
+                blpeakR.append(blpeak[i])
+                cr150R.append(cr150[i])
+                crpeakR.append(crpeak[i])
+
+        # Get max and avg for each metric
+        fl150Lmax = [round(max(fl150L), 1)]
+        bl150Lmax = [round(max(bl150L), 1)]
+        cr150Lmax = [round(max(cr150L), 1)]
+        fl150Rmax = [round(max(fl150R), 1)]
+        bl150Rmax = [round(max(bl150R), 1)]
+        cr150Rmax = [round(max(cr150R), 1)]
+        flpeakLmax = [round(max(flpeakL), 1)]
+        blpeakLmax = [round(max(blpeakL), 1)]
+        crpeakLmax = [round(max(crpeakL), 1)]
+        flpeakRmax = [round(max(flpeakR), 1)]
+        blpeakRmax = [round(max(blpeakR), 1)]
+        crpeakRmax = [round(max(crpeakR), 1)]
+        fl150Lavg = [round(sum(fl150L) / len(fl150L), 1)]
+        bl150Lavg = [round(sum(bl150L) / len(bl150L), 1)]
+        cr150Lavg = [round(sum(cr150L) / len(cr150L), 1)]
+        fl150Ravg = [round(sum(fl150R) / len(fl150R), 1)]
+        bl150Ravg = [round(sum(bl150R) / len(bl150R), 1)]
+        cr150Ravg = [round(sum(cr150R) / len(cr150R), 1)]
+        flpeakLavg = [round(sum(flpeakL) / len(flpeakL), 1)]
+        blpeakLavg = [round(sum(blpeakL) / len(blpeakL), 1)]
+        crpeakLavg = [round(sum(crpeakL) / len(crpeakL), 1)]
+        flpeakRavg = [round(sum(flpeakR) / len(flpeakR), 1)]
+        blpeakRavg = [round(sum(blpeakR) / len(blpeakR), 1)]
+        crpeakRavg = [round(sum(crpeakR) / len(crpeakR), 1)]
+
+        LHTZ_data = {
+            'max': {
+                'index': indexL,
+                'Front leg force at 150ms': fl150Lmax,
+                'Front leg peak force': flpeakLmax,
+                'Back leg force at 150ms': bl150Lmax,
+                'Back leg peak force': blpeakLmax,
+                'Crush factor at 150ms': cr150Lmax,
+                'Peak crush factor': crpeakLmax
+            },
+            'avg': {
+                'index': indexL,
+                'Front leg force at 150ms': fl150Lavg,
+                'Front leg peak force': flpeakLavg,
+                'Back leg force at 150ms': bl150Lavg,
+                'Back leg peak force': blpeakLavg,
+                'Crush factor at 150ms': cr150Lavg,
+                'Peak crush factor': crpeakLavg
+            }
+        }
+
+        RHTZ_data = {
+            'max': {
+                'index': indexR,
+                'Front leg force at 150ms': fl150Rmax,
+                'Front leg peak force': flpeakRmax,
+                'Back leg force at 150ms': bl150Rmax,
+                'Back leg peak force': blpeakRmax,
+                'Crush factor at 150ms': cr150Rmax,
+                'Peak crush factor': crpeakRmax
+            },
+            'avg': {
+                'index': indexR,
+                'Front leg force at 150ms': fl150Ravg,
+                'Front leg peak force': flpeakRavg,
+                'Back leg force at 150ms': bl150Ravg,
+                'Back leg peak force': blpeakRavg,
+                'Crush factor at 150ms': cr150Ravg,
+                'Peak crush factor': crpeakRavg
+            }
+        }
+
+        baselineData[key]['LHTZ'] = LHTZ_data
+        baselineData[key]['RHTZ'] = RHTZ_data
+
+    return baselineData
+
+
+
+
+
 
 
 
