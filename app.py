@@ -173,8 +173,12 @@ def dashboard():
             dataArray, dataArrayHead, countExt, timeStr,\
             players, bestPeak, best150, FLpeakAsym, \
             BLpeakAsym, FL150Asym, BL150Asym, = pb.squadPlot(squadTestData, squadPlayers, pro)
+            squadProData, allTests, allDates = pb.getSquadDict(squadTestData, pro)
             return render_template('squad.html',
                                    pro=pro,
+                                   squadProData=squadProData,
+                                   allDates=allDates,
+                                   allTests=allTests,
                                    dataArray=dataArray,
                                    dataArrayHead=dataArrayHead,
                                    timeStr=timeStr,
@@ -196,7 +200,8 @@ def dashboard():
             radarLabels, radarDataL, radarDataR, fPlotDictL, \
             fLabelDictL, fPlotDictR, fLabelDictR, fAsymDict, \
             flAsym, blAsym, dataArrayHead = pb.playerPlot(playerTestData, name)
-            sessions, lastBaseline, baselineList, lastFatigue, fatigueList = pb.getPlayerDict(playerTestData)
+            sessions, lastBaseline, baselineList, \
+            lastFatigue, fatigueList, allDates, allTests = pb.getPlayerDict(playerTestData)
             LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
             LHTZ_fatigue, RHTZ_fatigue = pb.getPlayerTzDict(sessions, lastFatigue)
             baselineHistoricalData = pb.getHistoricalDict(sessions, baselineList)
@@ -214,6 +219,8 @@ def dashboard():
                                    RHTZ_baseline=RHTZ_baseline,
                                    LHTZ_fatigue=LHTZ_fatigue,
                                    RHTZ_fatigue=RHTZ_fatigue,
+                                   allDates=allDates,
+                                   allTests=allTests,
                                    baselineHistoricalData=baselineHistoricalData,
                                    fatigueHistoricalData=fatigueHistoricalData,
                                    name=name,

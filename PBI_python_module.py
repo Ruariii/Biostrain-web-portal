@@ -36,7 +36,7 @@ def getPlayerDict(playerTestData):
     sessions = {}
     i=0
     for row in data:
-        date = datetime.datetime.fromtimestamp(timeadj[i]).strftime("%Y-%m-%d")
+        date = datetime.datetime.fromtimestamp(timeadj[i]).strftime("%Y/%m/%d")
         protocol = row[4]
         sessions[f'{protocol}: {date}'] = {}
         sessions[f'{protocol}: {date}']['index'] = []
@@ -51,7 +51,7 @@ def getPlayerDict(playerTestData):
 
     i = 0
     for row in data:
-        date = datetime.datetime.fromtimestamp(timeadj[i]).strftime("%Y-%m-%d")
+        date = datetime.datetime.fromtimestamp(timeadj[i]).strftime("%Y/%m/%d")
         protocol = row[4]
         index = row[0]
         tz = row[5]
@@ -109,9 +109,26 @@ def getPlayerDict(playerTestData):
             if lastBaseline == '':
                 lastBaseline = session
 
+    dates, numTests = [], []
+    for sessionName, tests in sessions.items():
+        date = datetime.datetime.strptime(sessionName.split(': ')[1], '%Y/%m/%d')
+        dates.append(date)
+        numTests.append(len(tests['index']))
+
+    minDate = dates[0]
+    maxDate = datetime.datetime.now()
+    allDates = [datetime.datetime.strftime(minDate + datetime.timedelta(days=d), '%Y/%m/%d') for d in range((maxDate - minDate).days + 1)]
+    allTests = []
+    for day in allDates:
+        dayobj = datetime.datetime.strptime(day, '%Y/%m/%d')
+        if dayobj in dates:
+            allTests.append(numTests[dates.index(dayobj)])
+        else:
+            allTests.append(0)
 
 
-    return sessions, lastBaseline, baselineList, lastFatigue, fatigueList
+
+    return sessions, lastBaseline, baselineList, lastFatigue, fatigueList, allDates, allTests
 
 def getPlayerTzDict(sessions, lastBaseline):
     data = sessions[lastBaseline]
@@ -244,6 +261,9 @@ def getPlayerTzDict(sessions, lastBaseline):
     return LHTZ_data, RHTZ_data
 
 def getHistoricalDict(sessions, baselineList):
+
+
+
     baselineData = {}
     li, ri = 0, 0
     for key in reversed(baselineList):
@@ -358,11 +378,224 @@ def getHistoricalDict(sessions, baselineList):
 
     return baselineData
 
+def getSquadDict(squadTestData, protocol):
+    squadData = []
+    for i in squadTestData:
+        squadData.append((i.Index, i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
+                     i.Left0ms, i.Left50ms, i.Left100ms,
+                     i.Left150ms, i.Left200ms, i.Left250ms,
+                     i.Left300ms, i.Leftpeak, i.Right0ms,
+                     i.Right50ms, i.Right100ms, i.Right150ms,
+                     i.Right200ms, i.Right250ms, i.Right300ms,
+                     i.Rightpeak, i.Combined0ms, i.Combined50ms,
+                     i.Combined100ms, i.Combined150ms, i.Combined200ms,
+                     i.Combined250ms, i.Combined300ms, i.Combinedpeak))
 
+    timestamps = [time.mktime(row[3].timetuple()) for row in squadData]
+    minute = 60
+    timeadj = []
+    j = 0
+    for i in range(len(timestamps)):
+        timeadj.append(round(timestamps[i] + (minute * j)))
+        j += 1
 
+    squadSessions = {}
+    for row in squadData:
+        user = row[2]
+        date = datetime.datetime.fromtimestamp(timeadj[i]).strftime("%Y/%m/%d")
+        protocol = row[4]
+        index = row[0]
 
+        squadSessions[f'{user} : {protocol} : {date}'] = {}
+        squadSessions[f'{user} : {protocol} : {date}']['index'] = []
+        squadSessions[f'{user} : {protocol} : {date}']['TZ'] = []
+        squadSessions[f'{user} : {protocol} : {date}']['Front leg force at 150ms'] = []
+        squadSessions[f'{user} : {protocol} : {date}']['Front leg peak force'] = []
+        squadSessions[f'{user} : {protocol} : {date}']['Back leg force at 150ms'] = []
+        squadSessions[f'{user} : {protocol} : {date}']['Back leg peak force'] = []
+        squadSessions[f'{user} : {protocol} : {date}']['Crush factor at 150ms'] = []
+        squadSessions[f'{user} : {protocol} : {date}']['Peak crush factor'] = []
 
+    for row in squadData:
+        user = row[2]
+        date = datetime.datetime.fromtimestamp(timeadj[i]).strftime("%Y/%m/%d")
+        protocol = row[4]
+        index = row[0]
+        tz = row[5]
+        if tz == 'LHTZ':
+            fl150 = round(row[9], 1)
+            flpeak = round(row[13], 1)
+            bl150 = round(row[17], 1)
+            blpeak = round(row[21], 1)
+        else:
+            bl150 = round(row[9], 1)
+            blpeak = round(row[13], 1)
+            fl150 = round(row[17], 1)
+            flpeak = round(row[21], 1)
 
+        cr150 = round((fl150 + bl150), 1)
+        crpeak = round((flpeak + blpeak), 1)
+
+        squadSessions[f'{user} : {protocol} : {date}']['index'].append(index)
+        squadSessions[f'{user} : {protocol} : {date}']['TZ'].append(tz)
+        squadSessions[f'{user} : {protocol} : {date}']['Front leg force at 150ms'].append(fl150)
+        squadSessions[f'{user} : {protocol} : {date}']['Front leg peak force'].append(flpeak)
+        squadSessions[f'{user} : {protocol} : {date}']['Back leg force at 150ms'].append(bl150)
+        squadSessions[f'{user} : {protocol} : {date}']['Back leg peak force'].append(blpeak)
+        squadSessions[f'{user} : {protocol} : {date}']['Crush factor at 150ms'].append(cr150)
+        squadSessions[f'{user} : {protocol} : {date}']['Peak crush factor'].append(crpeak)
+
+    selectedProtocol = f': {protocol} :'
+
+    # Filter the squadSessions dictionary to find all keys containing 'Baseline'
+    proSessions = {k: v for k, v in squadSessions.items() if selectedProtocol in k}
+
+    keys = [key for key, data in proSessions.items()]
+    filteredKeys = []
+    names = []
+    for key in keys[::-1]:
+        name = key.split(' : ')[0]
+        if name in names:
+            continue
+        else:
+            filteredKeys.append(key)
+        names.append(name)
+
+    filteredSessions = {k: v for k, v in proSessions.items() if k in filteredKeys}
+    squadProData = {}
+    li, ri = 0, 0
+    for key in filteredKeys:
+        user = key.split(' : ')[0]
+        squadProData[user] = {}
+        # Pull out traces
+        tzs = filteredSessions[key]['TZ']
+        fl150 = filteredSessions[key]['Front leg force at 150ms']
+        flpeak = filteredSessions[key]['Front leg peak force']
+        bl150 = filteredSessions[key]['Back leg force at 150ms']
+        blpeak = filteredSessions[key]['Back leg peak force']
+        cr150 = filteredSessions[key]['Crush factor at 150ms']
+        crpeak = filteredSessions[key]['Peak crush factor']
+
+        # Separate transition zones
+        indexL, indexR = [], []
+        fl150L, fl150R = [], []
+        flpeakL, flpeakR = [], []
+        bl150L, bl150R = [], []
+        blpeakL, blpeakR = [], []
+        cr150L, cr150R = [], []
+        crpeakL, crpeakR = [], []
+        for i in range(len(tzs)):
+            if tzs[i] == 'LHTZ':
+                li += 1
+                indexL.append(li)
+                fl150L.append(fl150[i])
+                flpeakL.append(flpeak[i])
+                bl150L.append(bl150[i])
+                blpeakL.append(blpeak[i])
+                cr150L.append(cr150[i])
+                crpeakL.append(crpeak[i])
+            else:
+                ri += 1
+                indexR.append(ri)
+                fl150R.append(fl150[i])
+                flpeakR.append(flpeak[i])
+                bl150R.append(bl150[i])
+                blpeakR.append(blpeak[i])
+                cr150R.append(cr150[i])
+                crpeakR.append(crpeak[i])
+
+        # Get max and avg for each metric
+        fl150Lmax = [round(max(fl150L), 1)]
+        bl150Lmax = [round(max(bl150L), 1)]
+        cr150Lmax = [round(max(cr150L), 1)]
+        fl150Rmax = [round(max(fl150R), 1)]
+        bl150Rmax = [round(max(bl150R), 1)]
+        cr150Rmax = [round(max(cr150R), 1)]
+        flpeakLmax = [round(max(flpeakL), 1)]
+        blpeakLmax = [round(max(blpeakL), 1)]
+        crpeakLmax = [round(max(crpeakL), 1)]
+        flpeakRmax = [round(max(flpeakR), 1)]
+        blpeakRmax = [round(max(blpeakR), 1)]
+        crpeakRmax = [round(max(crpeakR), 1)]
+        fl150Lavg = [round(sum(fl150L) / len(fl150L), 1)]
+        bl150Lavg = [round(sum(bl150L) / len(bl150L), 1)]
+        cr150Lavg = [round(sum(cr150L) / len(cr150L), 1)]
+        fl150Ravg = [round(sum(fl150R) / len(fl150R), 1)]
+        bl150Ravg = [round(sum(bl150R) / len(bl150R), 1)]
+        cr150Ravg = [round(sum(cr150R) / len(cr150R), 1)]
+        flpeakLavg = [round(sum(flpeakL) / len(flpeakL), 1)]
+        blpeakLavg = [round(sum(blpeakL) / len(blpeakL), 1)]
+        crpeakLavg = [round(sum(crpeakL) / len(crpeakL), 1)]
+        flpeakRavg = [round(sum(flpeakR) / len(flpeakR), 1)]
+        blpeakRavg = [round(sum(blpeakR) / len(blpeakR), 1)]
+        crpeakRavg = [round(sum(crpeakR) / len(crpeakR), 1)]
+
+        LHTZ_data = {
+            'max': {
+                'index': indexL,
+                'Peak crush factor': crpeakLmax,
+                'Front leg peak force': flpeakLmax,
+                'Back leg peak force': blpeakLmax,
+                'Crush factor at 150ms': cr150Lmax,
+                'Front leg force at 150ms': fl150Lmax,
+                'Back leg force at 150ms': bl150Lmax,
+
+            },
+            'avg': {
+                'index': indexL,
+                'Peak crush factor': crpeakLavg,
+                'Front leg peak force': flpeakLavg,
+                'Back leg peak force': blpeakLavg,
+                'Crush factor at 150ms': cr150Lavg,
+                'Front leg force at 150ms': fl150Lavg,
+                'Back leg force at 150ms': bl150Lavg,
+
+            }
+        }
+
+        RHTZ_data = {
+            'max': {
+                'index': indexR,
+                'Peak crush factor': crpeakRmax,
+                'Front leg peak force': flpeakRmax,
+                'Back leg peak force': blpeakRmax,
+                'Crush factor at 150ms': cr150Rmax,
+                'Front leg force at 150ms': fl150Rmax,
+                'Back leg force at 150ms': bl150Rmax,
+
+            },
+            'avg': {
+                'index': indexR,
+                'Peak crush factor': crpeakRavg,
+                'Front leg peak force': flpeakRavg,
+                'Back leg peak force': blpeakRavg,
+                'Crush factor at 150ms': cr150Ravg,
+                'Front leg force at 150ms': fl150Ravg,
+                'Back leg force at 150ms': bl150Ravg,
+
+            }
+        }
+
+        squadProData[user]['LHTZ'] = LHTZ_data
+        squadProData[user]['RHTZ'] = RHTZ_data
+    dates, numTests = [], []
+    for sessionName, tests in filteredSessions.items():
+        date = datetime.datetime.strptime(sessionName.split(': ')[2], '%Y/%m/%d')
+        dates.append(date)
+        numTests.append(len(tests['index']))
+
+    minDate = dates[0]
+    maxDate = datetime.datetime.now()
+    allDates = [datetime.datetime.strftime(minDate + datetime.timedelta(days=d), '%Y/%m/%d') for d in range((maxDate - minDate).days + 1)]
+    allTests = []
+    for day in allDates:
+        dayobj = datetime.datetime.strptime(day, '%Y/%m/%d')
+        if dayobj in dates:
+            allTests.append(numTests[dates.index(dayobj)])
+        else:
+            allTests.append(0)
+
+    return squadProData, allTests, allDates
 
 
 

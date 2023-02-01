@@ -946,12 +946,12 @@ updateChart4();
 
 
     <script>
-      const activityLabels = {{ timeStr|safe }}
+      const activityLabels = {{ allDates|safe }}
       const activityData = {
         labels: activityLabels,
         datasets: [{
           label: 'Tests completed',
-          data: {{ countExt|safe }},
+          data: {{ allTests|safe }},
           fill: true,
           borderColor: 'rgb(100, 75, 185)',
           tension: 0.05

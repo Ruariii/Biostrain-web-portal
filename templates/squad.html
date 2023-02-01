@@ -106,16 +106,25 @@
   <div class="card-body">
     <h5 class="card-title"> High scores </h5>
     <p class="card-text">Take a look at the top performers in your squad.</p>
-    <div class="row align-items-center">
-    <div class="col">
-      <p class="card-text"> <strong> Force at 150ms </strong></p>
-    <canvas id="top150Chart" width="50%" height="35%"></canvas>
-    </div>
-    <div class="col">
-      <p class="card-text"> <strong> Peak force </strong></p>
-      <canvas id="topPeakChart" width="50%" height="35%"></canvas>
-    </div>
-    </div>
+  <label for="sh-metric-select">Select Metric:</label>
+    <select id="sh-metric-select">
+      <option value="peak-crush-factor">Peak crush factor</option>
+      <option value="front-leg-peak-force">Front leg peak force</option>
+      <option value="back-leg-force-150ms">Back leg force at 150ms</option>
+      <option value="crush-factor-150ms">Crush factor at 150ms</option>
+      <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+      <option value="back-leg-peak-force">Back leg peak force</option>
+    </select>
+    <!-- Second dropdown for selecting the data type -->
+    <label for="sh-type-select">Select Data Type:</label>
+    <select id="sh-type-select">
+      <option value="max">Maximum scores</option>
+      <option value="avg">Average scores</option>
+    </select>
+      <canvas id="squadHistoricalChart" width="100%" height="40%"></canvas>
+      <br>
+      <table id="squad-historical-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
+    <br>
     <hr>
     <h5 class="card-title"> Asymmetry </h5>
     <p class="card-text"> Compare front leg & back leg asymmetry between squad members. </p>
@@ -137,12 +146,12 @@
 
 
   <script>
-      const labels = {{ timeStr|safe }}
+      const labels = {{ allDates|safe }}
       const data = {
         labels: labels,
         datasets: [{
           label: 'Tests completed',
-          data: {{ countExt|safe }},
+          data: {{ allTests|safe }},
           fill: true,
           borderColor: 'rgb(100, 75, 185)',
           tension: 0.05
@@ -168,69 +177,193 @@
     </script>
 
   <script>
+  // Get the data from the LHTZ_data and RHTZ_data dictionaries
+var data3 = {{ squadProData|tojson|safe }};
 
-      const labels2 = {{ players|safe }}
+// Extract the session names
+var session_names = [];
+for (var session in data3) {
+  session_names.push(session);
+}
 
-      const data2 = {
-        labels: labels2,
-        datasets: [{
-          label: 'Combined force at 150ms',
-          data: {{ best150|safe }},
-          backgroundColor: 'rgb(130, 75, 140)'
-        }
-        ]
+// Extract the data for the chart
+var BH_LHTZ_data = [];
+var BH_RHTZ_data = [];
+for (var session in data3) {
+  BH_LHTZ_data.push(data3[session]['LHTZ']['max']['Front leg force at 150ms'][0]);
+  BH_RHTZ_data.push(data3[session]['RHTZ']['max']['Front leg force at 150ms'][0]);
+}
+
+// Create a new chart
+const ctx3 = document.getElementById("squadHistoricalChart").getContext("2d");
+const squadHistoricalChart = new Chart(ctx3, {
+  type: "bar",
+  data: {
+    labels: session_names,
+    datasets: [{
+        label: 'LHTZ',
+        data: BH_LHTZ_data,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.2)'
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)'
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ',
+        data: BH_RHTZ_data,
+        backgroundColor: [
+          'rgba(54, 162, 235, 0.2)'
+        ],
+        borderColor: [
+          'rgba(54, 162, 235, 1)'
+        ],
+        borderWidth: 1
       }
-
-      new Chart(document.getElementById("top150Chart"), {
-      type: "bar",
-      data: data2,
-      options: {
-        scales: {
-            y:{
-              min:0,
-              max:300,
-              title: {
-                text: 'Force (kg)',
-                display: true
-              }
+    ]
+  },
+  options: {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function(tooltipItem) {
+            var Data = baselineHistoricalChart.data;
+            var index = tooltipItem.dataIndex;
+            console.log(index)
+            var LHTZ_value = 0;
+            var RHTZ_value = 0;
+            if (Data && Data.datasets[0].data[index]) {
+                LHTZ_value = Data.datasets[0].data[index];
             }
-        }
-      }
-  });
-    </script>
-
-  <script>
-
-      const labels3 = {{ players|safe }}
-
-      const data3 = {
-        labels: labels3,
-        datasets: [{
-          label: 'Combined peak force',
-          data: {{ bestPeak|safe }},
-          backgroundColor: 'rgb(180, 75, 70)'
-        }
-        ]
-      }
-
-      new Chart(document.getElementById("topPeakChart"), {
-      type: "bar",
-      data: data3,
-      options: {
-        scales: {
-            y:{
-              min:0,
-              max:300,
-              title: {
-                text: 'Force (kg)',
-                display: true
-              }
-
+            if (Data && Data.datasets[1].data[index]) {
+                RHTZ_value = Data.datasets[1].data[index];
             }
+            var difference = RHTZ_value - LHTZ_value;
+            var difference_percent = (difference / LHTZ_value * 100).toFixed(2);
+            return "LHTZ: " + LHTZ_value + " kg\n" + "RHTZ: " + RHTZ_value + " kg\n" + "Asymmetry: " + difference_percent + "%";
+          }
         }
       }
-  });
-    </script>
+    },
+    scales: {
+      y: {
+        title: {
+          text: 'Force (kg)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        title: {
+          text: 'User',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      yAxes: [{
+        ticks: {
+          beginAtZero: true
+        }
+      }]
+    }
+  }
+});
+
+function filterData3(data, metric) {
+    // Retrieve the data for LHTZ and RHTZ
+    var dataDict = {{ squadProData|tojson|safe }};
+    // Extract the data for the chart
+    var LHTZ_data = [];
+    var RHTZ_data = [];
+    for (var session in dataDict) {
+      LHTZ_data.push(dataDict[session]['LHTZ'][data][metric][0]);
+      RHTZ_data.push(dataDict[session]['RHTZ'][data][metric][0]);
+    }
+
+    // Return the filtered data
+    return {'LHTZ': LHTZ_data, 'RHTZ': RHTZ_data};
+}
+
+function updateChartData3(filteredData3) {
+    // Update the data for the LHTZ dataset
+    squadHistoricalChart.data.datasets[0].data = filteredData3['LHTZ'];
+    // Update the data for the RHTZ dataset
+    squadHistoricalChart.data.datasets[1].data = filteredData3['RHTZ'];
+    // Update the chart
+    squadHistoricalChart.update();
+}
+
+function updateTable3(filteredData3) {
+    // Get a reference to the table element
+    var table = document.getElementById("squad-historical-table");
+    // Clear the existing content of the table
+    table.innerHTML = "";
+
+    // Create the table headers
+    var headers = ["User", "LHTZ score (kg)", "RHTZ score (kg)", "Asymmetry (%)"];
+    var headerRow = document.createElement("tr");
+    for (var i = 0; i < headers.length; i++) {
+        var headerCell = document.createElement("th");
+        headerCell.innerHTML = headers[i];
+        headerRow.appendChild(headerCell);
+    }
+    table.appendChild(headerRow);
+
+    // Create the table rows
+    for (var i = 0; i < session_names.length; i++) {
+        var row = document.createElement("tr");
+        var testCell = document.createElement("td");
+        testCell.innerHTML = session_names[i];
+        row.appendChild(testCell);
+
+        var LHTZValue = filteredData3['LHTZ'][i];
+        var RHTZValue = filteredData3['RHTZ'][i];
+        var LHTZCell = document.createElement("td");
+        LHTZCell.innerHTML = LHTZValue;
+        row.appendChild(LHTZCell);
+
+        var RHTZCell = document.createElement("td");
+        RHTZCell.innerHTML = RHTZValue;
+        row.appendChild(RHTZCell);
+
+        var percentageDiff = ((RHTZValue - LHTZValue) / LHTZValue) * 100;
+        var diffCell = document.createElement("td");
+        diffCell.innerHTML = percentageDiff.toFixed(2);
+        row.appendChild(diffCell);
+
+        table.appendChild(row);
+    }
+}
+
+// Get references to the select elements
+var metricSelect3 = document.getElementById("sh-metric-select");
+metricSelect3.addEventListener("change", updateChart3);
+var dataSelect3 = document.getElementById("sh-type-select");
+dataSelect3.addEventListener("change", updateChart3);
+// Function to update the chart when a new option is selected
+function updateChart3() {
+    var selectedMetric3 = metricSelect3.options[metricSelect3.selectedIndex].text;
+    var selectedData3 = dataSelect3.options[dataSelect3.selectedIndex].value;
+    var filteredData3 = filterData3(selectedData3, selectedMetric3);
+    updateChartData3(filteredData3);
+    updateTable3(filteredData3);
+  }
+updateChart3();
+</script>
 
   <script>
 
