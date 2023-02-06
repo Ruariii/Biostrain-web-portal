@@ -6,6 +6,7 @@
       <meta charset="UTF-8">
       <title>Player Analysis</title>
       <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
+      <script src="/static/js/graphingFunctions.js"></script>
   </head>
   <body>
   <div>
@@ -34,66 +35,6 @@
     <h5 class="card-title">Last 5 completed tests:</h5>
     <br>
     <table id="activityTable" class="table table-hover">
-      <tr class="table-secondary">
-        <th scope="col" style="text-align:center">  </th>
-        <th scope="col" style="text-align:center"> Squad </th>
-        <th scope="col" style="text-align:center"> User </th>
-        <th scope="col" style="text-align:center"> Test date </th>
-        <th scope="col" style="text-align:center"> Protocol </th>
-        <th scope="col" style="text-align:center"> Transformational zone </th>
-        <th scope="col" style="text-align:center"> Left peak force </th>
-        <th scope="col" style="text-align:center"> Right peak force</th>
-      </tr>
-      <tr>
-        <th scope="Row" style="text-align:center"> 1 </th>
-        <td style="text-align:center"> {{ dataArrayHead[4][0] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[4][1] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[4][2] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[4][3] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[4][4] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[4][5] }} kg </td>
-        <td style="text-align:center"> {{ dataArrayHead[4][6] }} kg </td>
-      </tr>
-      <tr>
-        <th scope="Row" style="text-align:center"> 2 </th>
-        <td style="text-align:center"> {{ dataArrayHead[3][0] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[3][1] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[3][2] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[3][3] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[3][4] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[3][5] }} kg </td>
-        <td style="text-align:center"> {{ dataArrayHead[3][6] }} kg </td>
-      </tr>
-      <tr>
-        <th scope="Row" style="text-align:center"> 3 </th>
-        <td style="text-align:center"> {{ dataArrayHead[2][0] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[2][1] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[2][2] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[2][3] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[2][4] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[2][5] }} kg </td>
-        <td style="text-align:center"> {{ dataArrayHead[2][6] }} kg </td>
-      </tr>
-      <tr>
-        <th scope="Row" style="text-align:center"> 4 </th>
-        <td style="text-align:center"> {{ dataArrayHead[1][0] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[1][1] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[1][2] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[1][3] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[1][4] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[1][5] }} kg </td>
-        <td style="text-align:center"> {{ dataArrayHead[1][6] }} kg </td>
-      </tr>
-      <tr>
-        <th scope="Row" style="text-align:center"> 5 </th>
-        <td style="text-align:center"> {{ dataArrayHead[0][0] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[0][1] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[0][2] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[0][3] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[0][4] }} </td>
-        <td style="text-align:center"> {{ dataArrayHead[0][5] }} kg </td>
-        <td style="text-align:center"> {{ dataArrayHead[0][6] }} kg </td>
-      </tr>
     </table>
   </div>
   </div>
@@ -107,31 +48,47 @@
   <h5 class="card-title">Last baseline session:</h5>
     <p> <strong>Protocol:</strong> {{ lastBaselineList[0]|safe }}
       <strong>Date:</strong> {{ lastBaselineList[1]|safe }}</p>
+<div class="row">
+ <div class="col">
     <!-- First dropdown for selecting the metric -->
 <label for="metric-select">Select Metric:</label>
 <select id="metric-select">
-  <option value="front-leg-force-150ms">Front leg force at 150ms</option>
-  <option value="front-leg-peak-force">Front leg peak force</option>
-  <option value="back-leg-force-150ms">Back leg force at 150ms</option>
-  <option value="back-leg-peak-force">Back leg peak force</option>
-  <option value="crush-factor-150ms">Crush factor at 150ms</option>
-  <option value="peak-crush-factor">Peak crush factor</option>
+    <option value="peak-crush-factor">Peak crush factor</option>
+    <option value="front-leg-peak-force">Front leg peak force</option>
+    <option value="back-leg-peak-force">Back leg peak force</option>
+    <option value="crush-factor-150ms">Crush factor at 150ms</option>
+    <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+    <option value="back-leg-force-150ms">Back leg force at 150ms</option>
 </select>
-    <canvas id="myChart" width="100%" height="40%"></canvas>
+    <canvas id="myChart" width="100%" height="50%"></canvas>
     <br>
     <table id="last-baseline-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
+</div>
+  <div class="col">
+    <label for="asym-select">Select Metric:</label>
+<select id="asym-select">
+    <option value="crush-factor-asym">Transition zone asymmetry</option>
+    <option value="front-leg-asym">Front leg asymmetry</option>
+    <option value="back-leg-asym">Back leg asymmetry</option>
+</select>
+    <canvas id="lb-combined-crush" width="100%" height="50%"></canvas>
+    <br>
+    <table id="last-baseline-cc-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
+
+  </div>
+ </div>
   <br><hr><br>
     <h5 class="card-title">Baseline progress tracker:</h5>
     <p> Track your progress over time across all baseline protocols </p>
         <!-- First dropdown for selecting the metric -->
   <label for="bh-metric-select">Select Metric:</label>
   <select id="bh-metric-select">
-    <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+    <option value="peak-crush-factor">Peak crush factor</option>
     <option value="front-leg-peak-force">Front leg peak force</option>
-    <option value="back-leg-force-150ms">Back leg force at 150ms</option>
     <option value="back-leg-peak-force">Back leg peak force</option>
     <option value="crush-factor-150ms">Crush factor at 150ms</option>
-    <option value="peak-crush-factor">Peak crush factor</option>
+    <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+    <option value="back-leg-force-150ms">Back leg force at 150ms</option>
   </select>
   <!-- Second dropdown for selecting the data type -->
   <label for="bh-type-select">Select Data Type:</label>
@@ -160,12 +117,12 @@
       <strong>Date:</strong> {{ lastFatigueList[1]|safe }}</p>
 <label for="fatigue-metric-select">Select Metric:</label>
 <select id="fatigue-metric-select">
-  <option value="front-leg-force-150ms">Front leg force at 150ms</option>
-  <option value="front-leg-peak-force">Front leg peak force</option>
-  <option value="back-leg-force-150ms">Back leg force at 150ms</option>
-  <option value="back-leg-peak-force">Back leg peak force</option>
-  <option value="crush-factor-150ms">Crush factor at 150ms</option>
-  <option value="peak-crush-factor">Peak crush factor</option>
+ <option value="peak-crush-factor">Peak crush factor</option>
+    <option value="front-leg-peak-force">Front leg peak force</option>
+    <option value="back-leg-peak-force">Back leg peak force</option>
+    <option value="crush-factor-150ms">Crush factor at 150ms</option>
+    <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+    <option value="back-leg-force-150ms">Back leg force at 150ms</option>
 </select>
     <canvas id="myFatigueChart" width="100%" height="40%"></canvas>
     <br>
@@ -177,12 +134,12 @@
         <!-- First dropdown for selecting the metric -->
   <label for="fh-metric-select">Select Metric:</label>
   <select id="fh-metric-select">
-    <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+    <option value="peak-crush-factor">Peak crush factor</option>
     <option value="front-leg-peak-force">Front leg peak force</option>
-    <option value="back-leg-force-150ms">Back leg force at 150ms</option>
     <option value="back-leg-peak-force">Back leg peak force</option>
     <option value="crush-factor-150ms">Crush factor at 150ms</option>
-    <option value="peak-crush-factor">Peak crush factor</option>
+    <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+    <option value="back-leg-force-150ms">Back leg force at 150ms</option>
   </select>
   <!-- Second dropdown for selecting the data type -->
   <label for="fh-type-select">Select Data Type:</label>
@@ -219,7 +176,7 @@ var labels = LHTZ_data['session']['index'];
 
 // Create a new chart
 const ctx = document.getElementById("myChart").getContext("2d");
-const myChart = new Chart(ctx, {
+var myChart = new Chart(ctx, {
   type: "bar",
   data: {
     labels: labels,
@@ -305,94 +262,32 @@ const myChart = new Chart(ctx, {
     }
   }
 });
-function filterData(metric) {
-    // Retrieve the data for LHTZ and RHTZ
-    var LHTZ_data = {{ LHTZ_baseline|tojson|safe }};
-    var RHTZ_data = {{ RHTZ_baseline|tojson|safe }};
-
-    // Filter the data based on the selected metric
-    var LHTZ_filteredData = LHTZ_data['session'][metric];
-    var RHTZ_filteredData = RHTZ_data['session'][metric];
-
-    // Return the filtered data
-    return {'LHTZ': LHTZ_filteredData, 'RHTZ': RHTZ_filteredData};
-}
-
-function updateChartData(filteredData) {
-    // Update the data for the LHTZ dataset
-    myChart.data.datasets[0].data = filteredData['LHTZ'];
-    // Update the data for the RHTZ dataset
-    myChart.data.datasets[1].data = filteredData['RHTZ'];
-    // Update the chart
-    myChart.update();
-}
-
-function updateTable(filteredData, selectedMetric) {
-    // Get a reference to the table element
-    var table = document.getElementById("last-baseline-table");
-    // Clear the existing content of the table
-    table.innerHTML = "";
-
-    // Create the table headers
-    var headers = ["Test number", "LHTZ score (kg)", "RHTZ score (kg)", "Asymmetry (%)"];
-    var headerRow = document.createElement("tr");
-    for (var i = 0; i < headers.length; i++) {
-        var headerCell = document.createElement("th");
-        headerCell.innerHTML = headers[i];
-        headerRow.appendChild(headerCell);
-    }
-    table.appendChild(headerRow);
-
-    // Create the table rows
-    for (var i = 0; i < labels.length; i++) {
-        var row = document.createElement("tr");
-        var testCell = document.createElement("td");
-        testCell.innerHTML = labels[i];
-        row.appendChild(testCell);
-
-        var LHTZValue = filteredData['LHTZ'][i];
-        var RHTZValue = filteredData['RHTZ'][i];
-        var LHTZCell = document.createElement("td");
-        LHTZCell.innerHTML = LHTZValue;
-        row.appendChild(LHTZCell);
-
-        var RHTZCell = document.createElement("td");
-        RHTZCell.innerHTML = RHTZValue;
-        row.appendChild(RHTZCell);
-
-        var percentageDiff = ((RHTZValue - LHTZValue) / LHTZValue) * 100;
-        var diffCell = document.createElement("td");
-        diffCell.innerHTML = percentageDiff.toFixed(2);
-        row.appendChild(diffCell);
-
-        table.appendChild(row);
-    }
-}
 
 // Get references to the select elements
 var metricSelect = document.getElementById("metric-select");
 metricSelect.addEventListener("change", updateChart);
 // Function to update the chart when a new option is selected
 function updateChart() {
+    var table1 = document.getElementById("last-baseline-table")
     var selectedMetric = metricSelect.options[metricSelect.selectedIndex].text;
-    var filteredData = filterData(selectedMetric);
-    updateChartData(filteredData);
-    updateTable(filteredData, selectedMetric);
+    var filteredData1 = filterDataSession(selectedMetric, LHTZ_data, RHTZ_data);
+    updateChartDataSession(filteredData1, myChart);
+    updateTable(filteredData1, table1);
   }
 updateChart();
   </script>
 
 <script>
   // Get the data from the LHTZ_data and RHTZ_data dictionaries
-var LHTZ_data = {{ LHTZ_fatigue|tojson|safe }};
-var RHTZ_data = {{ RHTZ_fatigue|tojson|safe }};
+var LHTZ_data2 = {{ LHTZ_fatigue|tojson|safe }};
+var RHTZ_data2 = {{ RHTZ_fatigue|tojson|safe }};
 
 // Extract the data for the chart
-var LHTZ_chartData = LHTZ_data['session']['Front leg force at 150ms'];
-var RHTZ_chartData = RHTZ_data['session']['Front leg force at 150ms'];
+var LHTZ_chartData = LHTZ_data2['session']['Front leg force at 150ms'];
+var RHTZ_chartData = RHTZ_data2['session']['Front leg force at 150ms'];
 
 // Get the labels for the chart
-var labels2 = LHTZ_data['session']['index'];
+var labels2 = LHTZ_data2['session']['index'];
 
 // Create a new chart
 const ctx2 = document.getElementById("myFatigueChart").getContext("2d");
@@ -484,81 +379,19 @@ const myFatigueChart = new Chart(ctx2, {
       }
   });
 
-function filterData2(metric) {
-    // Retrieve the data for LHTZ and RHTZ
-    var LHTZ_data = {{ LHTZ_fatigue|tojson|safe }};
-    var RHTZ_data = {{ RHTZ_fatigue|tojson|safe }};
-
-    // Filter the data based on the selected metric
-    var LHTZ_filteredData = LHTZ_data['session'][metric];
-    var RHTZ_filteredData = RHTZ_data['session'][metric];
-
-    // Return the filtered data
-    return {'LHTZ': LHTZ_filteredData, 'RHTZ': RHTZ_filteredData};
-}
-
-function updateChartData2(filteredData2) {
-    // Update the data for the LHTZ dataset
-    myFatigueChart.data.datasets[0].data = filteredData2['LHTZ'];
-    // Update the data for the RHTZ dataset
-    myFatigueChart.data.datasets[1].data = filteredData2['RHTZ'];
-    // Update the chart
-    myFatigueChart.update();
-}
-
-function updateTable2(filteredData2, selectedMetric2) {
-    // Get a reference to the table element
-    var table = document.getElementById("last-fatigue-table");
-    // Clear the existing content of the table
-    table.innerHTML = "";
-
-    // Create the table headers
-    var headers = ["Test number", "LHTZ score (kg)", "RHTZ score (kg)", "Asymmetry (%)"];
-    var headerRow = document.createElement("tr");
-    for (var i = 0; i < headers.length; i++) {
-        var headerCell = document.createElement("th");
-        headerCell.innerHTML = headers[i];
-        headerRow.appendChild(headerCell);
-    }
-    table.appendChild(headerRow);
-
-    // Create the table rows
-    for (var i = 0; i < labels2.length; i++) {
-        var row = document.createElement("tr");
-        var testCell = document.createElement("td");
-        testCell.innerHTML = labels[i];
-        row.appendChild(testCell);
-
-        var LHTZValue = filteredData2['LHTZ'][i];
-        var RHTZValue = filteredData2['RHTZ'][i];
-        var LHTZCell = document.createElement("td");
-        LHTZCell.innerHTML = LHTZValue;
-        row.appendChild(LHTZCell);
-
-        var RHTZCell = document.createElement("td");
-        RHTZCell.innerHTML = RHTZValue;
-        row.appendChild(RHTZCell);
-
-        var percentageDiff = ((RHTZValue - LHTZValue) / LHTZValue) * 100;
-        var diffCell = document.createElement("td");
-        diffCell.innerHTML = percentageDiff.toFixed(2);
-        row.appendChild(diffCell);
-
-        table.appendChild(row);
-    }
-}
-
 // Get references to the select elements
 var metricSelect2 = document.getElementById("fatigue-metric-select");
 metricSelect2.addEventListener("change", updateChart2);
 // Function to update the chart when a new option is selected
 function updateChart2() {
+    var table2 = document.getElementById("last-fatigue-table")
     var selectedMetric2 = metricSelect2.options[metricSelect2.selectedIndex].text;
-    var filteredData2 = filterData2(selectedMetric2);
-    updateChartData2(filteredData2);
-    updateTable2(filteredData2, selectedMetric2);
+    var filteredData2 = filterDataSession(selectedMetric2, LHTZ_data2, RHTZ_data2);
+    updateChartDataSession(filteredData2, myFatigueChart);
+    updateTable(filteredData2, table2);
   }
 updateChart2();
+
   </script>
 
   <script>
@@ -668,84 +501,19 @@ const baselineHistoricalChart = new Chart(ctx3, {
   }
 });
 
-function filterData3(data, metric) {
-    // Retrieve the data for LHTZ and RHTZ
-    var dataDict = {{ baselineHistoricalData|tojson|safe }};
-    // Extract the data for the chart
-    var LHTZ_data = [];
-    var RHTZ_data = [];
-    for (var session in dataDict) {
-      LHTZ_data.push(dataDict[session]['LHTZ'][data][metric][0]);
-      RHTZ_data.push(dataDict[session]['RHTZ'][data][metric][0]);
-    }
-
-    // Return the filtered data
-    return {'LHTZ': LHTZ_data, 'RHTZ': RHTZ_data};
-}
-
-function updateChartData3(filteredData3) {
-    // Update the data for the LHTZ dataset
-    baselineHistoricalChart.data.datasets[0].data = filteredData3['LHTZ'];
-    // Update the data for the RHTZ dataset
-    baselineHistoricalChart.data.datasets[1].data = filteredData3['RHTZ'];
-    // Update the chart
-    baselineHistoricalChart.update();
-}
-
-function updateTable3(filteredData3) {
-    // Get a reference to the table element
-    var table = document.getElementById("baseline-historical-table");
-    // Clear the existing content of the table
-    table.innerHTML = "";
-
-    // Create the table headers
-    var headers = ["Test number", "LHTZ score (kg)", "RHTZ score (kg)", "Asymmetry (%)"];
-    var headerRow = document.createElement("tr");
-    for (var i = 0; i < headers.length; i++) {
-        var headerCell = document.createElement("th");
-        headerCell.innerHTML = headers[i];
-        headerRow.appendChild(headerCell);
-    }
-    table.appendChild(headerRow);
-
-    // Create the table rows
-    for (var i = 0; i < session_names.length; i++) {
-        var row = document.createElement("tr");
-        var testCell = document.createElement("td");
-        testCell.innerHTML = session_names[i];
-        row.appendChild(testCell);
-
-        var LHTZValue = filteredData3['LHTZ'][i];
-        var RHTZValue = filteredData3['RHTZ'][i];
-        var LHTZCell = document.createElement("td");
-        LHTZCell.innerHTML = LHTZValue;
-        row.appendChild(LHTZCell);
-
-        var RHTZCell = document.createElement("td");
-        RHTZCell.innerHTML = RHTZValue;
-        row.appendChild(RHTZCell);
-
-        var percentageDiff = ((RHTZValue - LHTZValue) / LHTZValue) * 100;
-        var diffCell = document.createElement("td");
-        diffCell.innerHTML = percentageDiff.toFixed(2);
-        row.appendChild(diffCell);
-
-        table.appendChild(row);
-    }
-}
-
 // Get references to the select elements
 var metricSelect3 = document.getElementById("bh-metric-select");
-metricSelect3.addEventListener("change", updateChart3);
 var dataSelect3 = document.getElementById("bh-type-select");
+metricSelect3.addEventListener("change", updateChart3);
 dataSelect3.addEventListener("change", updateChart3);
 // Function to update the chart when a new option is selected
 function updateChart3() {
+    var table3 = document.getElementById("baseline-historical-table")
     var selectedMetric3 = metricSelect3.options[metricSelect3.selectedIndex].text;
     var selectedData3 = dataSelect3.options[dataSelect3.selectedIndex].value;
-    var filteredData3 = filterData3(selectedData3, selectedMetric3);
-    updateChartData3(filteredData3);
-    updateTable3(filteredData3);
+    var filteredData3 = filterDataHistorical(selectedData3, selectedMetric3, data3);
+    updateChartDataSession(filteredData3, baselineHistoricalChart);
+    updateTableHistorical(filteredData3, table3, session_names);
   }
 updateChart3();
 </script>
@@ -857,84 +625,19 @@ const fatigueHistoricalChart = new Chart(ctx4, {
   }
 });
 
-function filterData4(data, metric) {
-    // Retrieve the data for LHTZ and RHTZ
-    var dataDict2 = {{ fatigueHistoricalData|tojson|safe }};
-    // Extract the data for the chart
-    var LHTZ_data = [];
-    var RHTZ_data = [];
-    for (var session in dataDict2) {
-      LHTZ_data.push(dataDict2[session]['LHTZ'][data][metric][0]);
-      RHTZ_data.push(dataDict2[session]['RHTZ'][data][metric][0]);
-    }
-
-    // Return the filtered data
-    return {'LHTZ': LHTZ_data, 'RHTZ': RHTZ_data};
-}
-
-function updateChartData4(filteredData4) {
-    // Update the data for the LHTZ dataset
-    fatigueHistoricalChart.data.datasets[0].data = filteredData4['LHTZ'];
-    // Update the data for the RHTZ dataset
-    fatigueHistoricalChart.data.datasets[1].data = filteredData4['RHTZ'];
-    // Update the chart
-    fatigueHistoricalChart.update();
-}
-
-function updateTable4(filteredData4) {
-    // Get a reference to the table element
-    var table = document.getElementById("fatigue-historical-table");
-    // Clear the existing content of the table
-    table.innerHTML = "";
-
-    // Create the table headers
-    var headers = ["Test number", "LHTZ score (kg)", "RHTZ score (kg)", "Asymmetry (%)"];
-    var headerRow = document.createElement("tr");
-    for (var i = 0; i < headers.length; i++) {
-        var headerCell = document.createElement("th");
-        headerCell.innerHTML = headers[i];
-        headerRow.appendChild(headerCell);
-    }
-    table.appendChild(headerRow);
-
-    // Create the table rows
-    for (var i = 0; i < session_names2.length; i++) {
-        var row = document.createElement("tr");
-        var testCell = document.createElement("td");
-        testCell.innerHTML = session_names[i];
-        row.appendChild(testCell);
-
-        var LHTZValue = filteredData4['LHTZ'][i];
-        var RHTZValue = filteredData4['RHTZ'][i];
-        var LHTZCell = document.createElement("td");
-        LHTZCell.innerHTML = LHTZValue;
-        row.appendChild(LHTZCell);
-
-        var RHTZCell = document.createElement("td");
-        RHTZCell.innerHTML = RHTZValue;
-        row.appendChild(RHTZCell);
-
-        var percentageDiff = ((RHTZValue - LHTZValue) / LHTZValue) * 100;
-        var diffCell = document.createElement("td");
-        diffCell.innerHTML = percentageDiff.toFixed(2);
-        row.appendChild(diffCell);
-
-        table.appendChild(row);
-    }
-}
-
 // Get references to the select elements
 var metricSelect4 = document.getElementById("fh-metric-select");
-metricSelect4.addEventListener("change", updateChart4);
 var dataSelect4 = document.getElementById("fh-type-select");
+metricSelect4.addEventListener("change", updateChart4);
 dataSelect4.addEventListener("change", updateChart4);
 // Function to update the chart when a new option is selected
 function updateChart4() {
+    var table4 = document.getElementById("fatigue-historical-table")
     var selectedMetric4 = metricSelect4.options[metricSelect4.selectedIndex].text;
     var selectedData4 = dataSelect4.options[dataSelect4.selectedIndex].value;
-    var filteredData4 = filterData4(selectedData4, selectedMetric4);
-    updateChartData4(filteredData4);
-    updateTable4(filteredData4);
+    var filteredData4 = filterDataHistorical(selectedData4, selectedMetric4, data4);
+    updateChartDataSession(filteredData4, fatigueHistoricalChart);
+    updateTableHistorical(filteredData4, table4, session_names2);
   }
 updateChart4();
 </script>
@@ -946,12 +649,12 @@ updateChart4();
 
 
     <script>
-      const activityLabels = {{ allDates|safe }}
+      const activityLabels = {{ dates|safe }}
       const activityData = {
         labels: activityLabels,
         datasets: [{
           label: 'Tests completed',
-          data: {{ allTests|safe }},
+          data: {{ numTests|safe }},
           fill: true,
           borderColor: 'rgb(100, 75, 185)',
           tension: 0.05
@@ -960,24 +663,172 @@ updateChart4();
 
       const ctx5 = document.getElementById("activityChart").getContext("2d");
       const activityChart = new Chart(ctx5, {
-          type: "line",
-          data: activityData,
-          options: {
-            scales: {
-                y:{
-                  min:0,
-                  max:20,
-                  title:{
-                    text: 'Number of completed tests',
-                    display: true
-                  }
-                }
-            }
+        type: "line",
+        data: activityData,
+        options: {
+          scales: {
+            y: {
+              min: 0,
+              max: 40,
+              title: {
+                text: 'Number of completed tests',
+                display: true
+              }
+            },
+            xAxes: [{
+              ticks: {
+                autoSkip: true,
+                maxTicksLimit: 2
+              }
+            }]
           }
+        }
       });
+
     </script>
 
+<script>
+// Get the data from the LHTZ_data and RHTZ_data dictionaries
+var LHTZ_data = {{ LHTZ_baseline|tojson|safe }};
+var RHTZ_data = {{ RHTZ_baseline|tojson|safe }};
 
+// Extract the data for the chart
+var LHTZ_FLchartData = LHTZ_data['session']['Front leg peak force'];
+var LHTZ_BLchartData = LHTZ_data['session']['Back leg peak force'];
+var RHTZ_FLchartData = RHTZ_data['session']['Front leg peak force'];
+var RHTZ_BLchartData = RHTZ_data['session']['Back leg peak force'];
+var TZ_asym = [];
+for (var i = 0; i < LHTZ_FLchartData.length; i++) {
+    var asym = 100*(((RHTZ_FLchartData[i]+RHTZ_BLchartData[i])-(LHTZ_FLchartData[i]+LHTZ_BLchartData[i]))/(LHTZ_FLchartData[i]+LHTZ_BLchartData[i]))
+    TZ_asym.push(asym)
+};
+
+
+// Get the labels for the chart
+var labels = LHTZ_data['session']['index'];
+
+// Create a new chart
+const ctx6 = document.getElementById("lb-combined-crush").getContext("2d");
+const lbCombinedCrush = new Chart(ctx6, {
+  type: "bar",
+  data: {
+    labels: labels,
+    datasets: [{
+        label: 'Transition zone asymmetry',
+        data: TZ_asym,
+        borderColor: [
+          'black'
+        ],
+        borderWidth: 1,
+        yAxisID: 'y1',
+        type: 'line'
+      },
+      {
+        label: 'LHTZ front leg',
+        data: LHTZ_FLchartData,
+        backgroundColor: [
+          'rgba(255, 159, 64, 0.8)'
+        ],
+        borderColor: [
+          'rgba(255, 159, 64, 1)'
+        ],
+        yAxisID: 'y',
+        borderWidth: 1
+      },
+      {
+        label: 'LHTZ back leg',
+        data: LHTZ_BLchartData,
+        backgroundColor: [
+          'rgba(255, 159, 64, 0.2)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(255, 159, 64, 1)'
+
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ front leg',
+        data: RHTZ_FLchartData,
+        backgroundColor: [
+          'rgba(100, 149, 237, 0.8)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(100, 149, 237, 1)'
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ back leg',
+        data: RHTZ_BLchartData,
+        backgroundColor: [
+          'rgba(100, 149, 237, 0.2)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(100, 149, 237, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    scales: {
+      y: {
+        stacked: true,
+        title: {
+          text: 'Force (kg)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      y1: {
+        position: 'right',
+        min: -100,
+        max: 100,
+        title: {
+          text: 'Asymmetry (%)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        stacked: true,
+        title: {
+          text: 'Test number',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      yAxes: [{
+        ticks: {
+          beginAtZero: true
+        }
+      }]
+    }
+  }
+});
+  </script>
 
 
 {% endblock %}

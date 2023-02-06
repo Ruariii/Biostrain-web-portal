@@ -3,12 +3,15 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, SelectField
 from wtforms.validators import DataRequired
-from sqlalchemy import Table, create_engine
+from sqlalchemy import Table, create_engine, MetaData
 import mysql.connector
+import sqlite3
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 import os
 import PBI_python_module as pb
+import numpy as np
+
 
 #Create flask instance
 
@@ -26,8 +29,8 @@ def connectDB():
         app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{user}:{password}@{port}/{database}'
         debugStatus = False
     except:
-        engine = create_engine('mysql+pymysql://root:jqtnnhj2@localhost/userinfo')
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:jqtnnhj2@localhost/userinfo'
+        engine = create_engine('sqlite:////Users/ruarihodgin/Desktop/Lucid/Biostrain/Biostrain-web-portal-main/biostrain.db')
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/ruarihodgin/Desktop/Lucid/Biostrain/Biostrain-web-portal-main/biostrain.db'
         debugStatus = True
     return engine, debugStatus
 
@@ -53,26 +56,32 @@ class Login(db.Model, UserMixin):
     username = db.Column(db.String(50), nullable=False, unique=True)
     password = db.Column(db.String(50), nullable=False)
 
+    __tablename__ = 'Login'
+
     def __repr__(self):
         return '<User ID %r>' % self.id
 
-class Playerprofiles(db.Model, UserMixin):
-    Index = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
+class PlayerProfiles(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
     Org = db.Column(db.VARCHAR(45))
     User = db.Column(db.VARCHAR(45))
     Gender = db.Column(db.VARCHAR(1))
     Weight = db.Column(db.Float)
     Height = db.Column(db.Float)
+    loginID = db.Column(db.Integer, nullable=False)
+
+    __tablename__ = 'Playerprofiles'
 
     def __repr__(self):
         return '<User Index %r>' % self.Index
 
+
 #Create data model
-class Testdatalog(db.Model, UserMixin):
-    Index = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
+class PlayerData(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
     Org = db.Column(db.Text)
     User = db.Column(db.Text)
-    Timestamp = db.Column(db.Date)
+    Timestamp = db.Column(db.Integer)
     Protocol = db.Column(db.Text)
     TZ = db.Column(db.Text)
     Left0ms = db.Column(db.Float)
@@ -91,17 +100,14 @@ class Testdatalog(db.Model, UserMixin):
     Right250ms = db.Column(db.Float)
     Right300ms = db.Column(db.Float)
     Rightpeak = db.Column(db.Float)
-    Combined0ms = db.Column(db.Float)
-    Combined50ms = db.Column(db.Float)
-    Combined100ms = db.Column(db.Float)
-    Combined150ms = db.Column(db.Float)
-    Combined200ms = db.Column(db.Float)
-    Combined250ms = db.Column(db.Float)
-    Combined300ms = db.Column(db.Float)
-    Combinedpeak = db.Column(db.Float)
+    loginID = db.Column(db.Integer, nullable=False)
+
+    __tablename__ = 'Playerdata'
 
     def __repr__(self):
         return '<User Index %r>' % self.Index
+
+
 
 class loginForm(FlaskForm):
     uname = StringField("Enter username", validators=[DataRequired()])
@@ -109,12 +115,12 @@ class loginForm(FlaskForm):
     submit = SubmitField("Login")
 
 class playerForm(FlaskForm):
-    squad = SelectField("Select squad", choices=['Senior squad (men)', 'U21 squad (men)'], validators=[DataRequired()])
+    squad = SelectField("Select squad", choices=[], validators=[DataRequired()])
     name = SelectField("Select player", choices=[], validators=[DataRequired()])
     submit = SubmitField("Take me there")
 
 class squadForm(FlaskForm):
-    org = SelectField("Select squad to view", choices=['Select squad:', 'Senior squad (men)', 'U21 squad (men)'], validators=[DataRequired()])
+    org = SelectField("Select squad to view", choices=[], validators=[DataRequired()])
     pro = SelectField("Select protocol", choices=[], validators=[DataRequired()])
     submit = SubmitField("Take me there")
 
@@ -162,48 +168,46 @@ def dashboard():
             'squad':squadform,
             'player':playerform
             }
-    playerform.name.choices = [player.User for player in Playerprofiles.query.filter_by(Org='Senior squad (men)').all()]
+    uname = current_user.username
+    user = Login.query.filter_by(username = uname).first()
+    ID = user.id
+    squads = list(np.unique(np.array([player.Org for player in PlayerProfiles.query.filter_by(loginID=ID).all()])))
+    try:
+        pros = list(np.unique(np.array([player.Protocol for player in PlayerData.query.filter_by(Org=squads[0]).all()])))
+        squadform.org.choices = [squad for squad in squads]
+        squadform.pro.choices = [pro for pro in pros]
+        playerform.squad.choices = squads
+        playerform.name.choices = [player.User for player in PlayerProfiles.query.filter_by(Org=squads[0]).all()]
+    except:
+        squadform.org.choices = ['No squad data - create user profiles on your Biostrain app!']
+        squadform.pro.choices = []
+        playerform.squad.choices = ['No squad data - create user profiles on your Biostrain app!']
+        playerform.name.choices = []
 
     if request.method == 'POST' and squadform.validate:
         try:
             org = request.form['org']
             pro = request.form['pro']
-            squadTestData = Testdatalog.query.filter_by(Org=org, Protocol=pro)
-            squadPlayers = Playerprofiles.query.filter_by(Org=org)
-            dataArray, dataArrayHead, countExt, timeStr,\
-            players, bestPeak, best150, FLpeakAsym, \
-            BLpeakAsym, FL150Asym, BL150Asym, = pb.squadPlot(squadTestData, squadPlayers, pro)
+            squadTestData = PlayerData.query.filter_by(Org=org, Protocol=pro)
             squadProData, allTests, allDates = pb.getSquadDict(squadTestData, pro)
             return render_template('squad.html',
                                    pro=pro,
                                    squadProData=squadProData,
                                    allDates=allDates,
-                                   allTests=allTests,
-                                   dataArray=dataArray,
-                                   dataArrayHead=dataArrayHead,
-                                   timeStr=timeStr,
-                                   countExt=countExt,
-                                   best150=best150,
-                                   bestPeak=bestPeak,
-                                   players=players,
-                                   FL150Asym=FL150Asym,
-                                   FLpeakAsym=FLpeakAsym,
-                                   BLpeakAsym=BLpeakAsym,
-                                   BL150Asym=BL150Asym)
+                                   allTests=allTests
+                                   )
         except:
             name = request.form['name']
-            playerTestData = Testdatalog.query.filter_by(User=name)
-            user = Playerprofiles.query.filter_by(User=name).first()
-            height = user.Height
-            weight = user.Weight
-            baselineMax, timeStr, countExt, proArray, \
-            radarLabels, radarDataL, radarDataR, fPlotDictL, \
-            fLabelDictL, fPlotDictR, fLabelDictR, fAsymDict, \
-            flAsym, blAsym, dataArrayHead = pb.playerPlot(playerTestData, name)
-            sessions, lastBaseline, baselineList, \
-            lastFatigue, fatigueList, allDates, allTests = pb.getPlayerDict(playerTestData)
-            LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
-            LHTZ_fatigue, RHTZ_fatigue = pb.getPlayerTzDict(sessions, lastFatigue)
+            playerTestData = PlayerData.query.filter_by(User=name, loginID=ID)
+            sessions, lastBaseline, baselineList, lastFatigue, fatigueList, dates, numTests = pb.getPlayerDict(playerTestData)
+            try:
+                LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
+            except:
+                LHTZ_baseline, RHTZ_baseline = [], []
+            try:
+                LHTZ_fatigue, RHTZ_fatigue = pb.getPlayerTzDict(sessions, lastFatigue)
+            except:
+                LHTZ_fatigue, RHTZ_fatigue = [], []
             baselineHistoricalData = pb.getHistoricalDict(sessions, baselineList)
             fatigueHistoricalData = pb.getHistoricalDict(sessions, fatigueList)
             lastBaselineList = lastBaseline.split(':')
@@ -215,18 +219,15 @@ def dashboard():
                                    sessions=sessions,
                                    lastBaselineList=lastBaselineList,
                                    lastFatigueList=lastFatigueList,
+                                   dates=dates,
+                                   numTests=numTests,
                                    LHTZ_baseline=LHTZ_baseline,
                                    RHTZ_baseline=RHTZ_baseline,
                                    LHTZ_fatigue=LHTZ_fatigue,
                                    RHTZ_fatigue=RHTZ_fatigue,
-                                   allDates=allDates,
-                                   allTests=allTests,
                                    baselineHistoricalData=baselineHistoricalData,
                                    fatigueHistoricalData=fatigueHistoricalData,
                                    name=name,
-                                   countExt=countExt,
-                                   timeStr=timeStr,
-                                   dataArrayHead=dataArrayHead,
                                    report=report
                                    )
 
@@ -255,13 +256,16 @@ def device():
 @app.route('/player/<squad>')
 @login_required
 def playerSelect(squad):
-    players = Playerprofiles.query.filter_by(Org=squad).all()
+    uname = current_user.username
+    user = Login.query.filter_by(username = uname).first()
+    ID = user.id
+    players = PlayerProfiles.query.filter_by(Org=squad, loginID=ID).all()
 
     playerArray=[]
 
     for player in players:
         playerObj = {}
-        playerObj['id'] = player.Index
+        playerObj['id'] = player.id
         playerObj['name'] = player.User
         playerArray.append(playerObj)
 
@@ -271,13 +275,16 @@ def playerSelect(squad):
 @app.route('/pro/<squad>')
 @login_required
 def squadSelect(squad):
-    protocols = Testdatalog.query.filter_by(Org=squad).all()
+    uname = current_user.username
+    user = Login.query.filter_by(username = uname).first()
+    ID = user.id
+    protocols = PlayerData.query.filter_by(Org=squad, loginID=ID).all()
 
     proArray=[]
 
     for protocol in protocols:
         proObj = {}
-        proObj['id'] = protocol.Index
+        proObj['id'] = protocol.id
         proObj['name'] = protocol.Protocol
         proArray.append(proObj)
 
