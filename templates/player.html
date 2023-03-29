@@ -2,165 +2,193 @@
 {% extends 'base.html' %}
 {% block content %}
   <html lang="en">
+
   <head>
-      <meta charset="UTF-8">
-      <title>Player Analysis</title>
-      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
-      <script src="/static/js/graphingFunctions.js"></script>
+    <meta charset="UTF-8">
+    <title>Player Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
+    <script src="/static/js/graphingFunctions.js"></script>
   </head>
+
   <body>
-  <div>
-    {% for message in get_flashed_messages() %}
+    <div>
+      {% for message in get_flashed_messages() %}
 
       <div class="alert alert-dark alert-dismissible fade show" role="alert">
         <strong>{{ message }}</strong>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
 
-    {% endfor %}
-    <br>
-  </div>
-  <h4> Player View: {{name}} </h4>
-  <hr>
-  <br>
-
-
-  <div class="card">
-  <h5 class="card-header">Featured: user activity</h5>
-  <div class="card-body">
-    <h5 class="card-title">Activity log</h5>
-    <p class="card-text">Monitor your activity on the Biostrain system.</p>
-    <canvas id="activityChart" width="100%" height="40%"></canvas>
+      {% endfor %}
+      <br>
+    </div>
+    <h4> Player View: {{name}} </h4>
     <hr>
-    <h5 class="card-title">Last 5 completed tests:</h5>
     <br>
-    <table id="activityTable" class="table table-hover">
-    </table>
-  </div>
-  </div>
-  <br><br>
 
 
-  <div class="card">
-    <h5 class="card-header">Featured: baseline protocols</h5>
-    <div class="card-body">
-      <p class="card-text">Baseline protocols allow us to monitor your performance when fresh and give insights into your absolute performance capabilities as well as your performance potential.</p>
-  <h5 class="card-title">Last baseline session:</h5>
-    <p> <strong>Protocol:</strong> {{ lastBaselineList[0]|safe }}
-      <strong>Date:</strong> {{ lastBaselineList[1]|safe }}</p>
-<div class="row">
- <div class="col">
-    <!-- First dropdown for selecting the metric -->
-<label for="metric-select">Select Metric:</label>
-<select id="metric-select">
-    <option value="peak-crush-factor">Peak crush factor</option>
-    <option value="front-leg-peak-force">Front leg peak force</option>
-    <option value="back-leg-peak-force">Back leg peak force</option>
-    <option value="crush-factor-150ms">Crush factor at 150ms</option>
-    <option value="front-leg-force-150ms">Front leg force at 150ms</option>
-    <option value="back-leg-force-150ms">Back leg force at 150ms</option>
-</select>
-    <canvas id="myChart" width="100%" height="50%"></canvas>
-    <br>
-    <table id="last-baseline-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
-</div>
-  <div class="col">
-    <label for="asym-select">Select Metric:</label>
-<select id="asym-select">
-    <option value="crush-factor-asym">Transition zone asymmetry</option>
-    <option value="front-leg-asym">Front leg asymmetry</option>
-    <option value="back-leg-asym">Back leg asymmetry</option>
-</select>
-    <canvas id="lb-combined-crush" width="100%" height="50%"></canvas>
-    <br>
-    <table id="last-baseline-cc-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
+    <div class="card">
+      <h5 class="card-header">Featured: user activity</h5>
+      <div class="card-body">
+        <h5 class="card-title">Activity log</h5>
+        <p class="card-text">Monitor your activity on the Biostrain system in the last 30 days.</p>
+        <canvas id="activityChart" width="100%" height="40%"></canvas>
+      </div>
+    </div>
+    <br><br>
 
-  </div>
- </div>
-  <br><hr><br>
-    <h5 class="card-title">Baseline progress tracker:</h5>
-    <p> Track your progress over time across all baseline protocols </p>
+
+    <div class="card">
+      <h5 class="card-header">Featured: baseline protocols</h5>
+      <div class="card-body">
+        <p class="card-text">Baseline protocols allow us to monitor your performance when fresh and give insights into your absolute performance capabilities as well as your performance potential.</p>
+        <h5 class="card-title">Baseline session viewer:</h5>
+        <label for="baseline-select">Select a baseline session from the list of your saved data:</label>
+        <select id="baseline-select">
+          {% for session in baselineList %}
+          <option> {{ session }} </option>
+          {% endfor %}
+        </select>
+        <br><br>
+
+        <div class="row">
+          <div class="col">
+            <p style="text-align:center"> <strong> Transition zone comparison: </strong></p>
+            <!-- First dropdown for selecting the metric -->
+            <label for="metric-select">Select Metric:</label>
+            <select id="metric-select">
+              <option value="peak-crush-factor">Peak crush factor</option>
+              <option value="front-leg-peak-force">Front leg peak force</option>
+              <option value="back-leg-peak-force">Back leg peak force</option>
+              <option value="crush-factor-150ms">Crush factor at 150ms</option>
+              <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+              <option value="back-leg-force-150ms">Back leg force at 150ms</option>
+            </select>
+            <br><br>
+            <canvas id="myChart" width="70%" height="40%"></canvas>
+            <br><br>
+            <table id="last-baseline-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
+          </div>
+          <div class="col">
+            <p style="text-align:center"> <strong> Combined transition zones: </strong></p>
+            <div class="row">
+              <div class="col">
+                <label for="asym-select">Select asymmetry:</label>
+                <select id="asym-select">
+                  <option value="crush-factor-asym">Transition zone</option>
+                  <option value="front-leg-asym">Front leg</option>
+                  <option value="back-leg-asym">Back leg</option>
+                </select>
+              </div>
+              <div class="col">
+                <label for="cc-metric-select">Select metric:</label>
+                <select id="cc-metric-select">
+                  <option value="peak-force">Peak force</option>
+                  <option value="force-150">Force at 150ms</option>
+                </select>
+              </div>
+            </div>
+            <br>
+            <canvas id="lb-combined-crush" width="70%" height="40%"></canvas>
+            <br>
+            <table id="last-baseline-cc-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
+            <br>
+          </div>
+        </div>
+        <br>
+        <hr><br>
+        <h5 class="card-title">Baseline progress tracker:</h5>
+        <p> Track your progress over time across all baseline protocols </p>
         <!-- First dropdown for selecting the metric -->
-  <label for="bh-metric-select">Select Metric:</label>
-  <select id="bh-metric-select">
-    <option value="peak-crush-factor">Peak crush factor</option>
-    <option value="front-leg-peak-force">Front leg peak force</option>
-    <option value="back-leg-peak-force">Back leg peak force</option>
-    <option value="crush-factor-150ms">Crush factor at 150ms</option>
-    <option value="front-leg-force-150ms">Front leg force at 150ms</option>
-    <option value="back-leg-force-150ms">Back leg force at 150ms</option>
-  </select>
-  <!-- Second dropdown for selecting the data type -->
-  <label for="bh-type-select">Select Data Type:</label>
-  <select id="bh-type-select">
-    <option value="max">Maximum scores</option>
-    <option value="avg">Average scores</option>
-  </select>
-    <canvas id="baselineHistoricalChart" width="100%" height="40%"></canvas>
-    <br>
-    <table id="baseline-historical-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
-  <br>
+        <label for="bh-metric-select">Select Metric:</label>
+        <select id="bh-metric-select">
+          <option value="peak-crush-factor">Peak crush factor</option>
+          <option value="front-leg-peak-force">Front leg peak force</option>
+          <option value="back-leg-peak-force">Back leg peak force</option>
+          <option value="crush-factor-150ms">Crush factor at 150ms</option>
+          <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+          <option value="back-leg-force-150ms">Back leg force at 150ms</option>
+        </select>
+        <!-- Second dropdown for selecting the data type -->
+        <label for="bh-type-select">Select Data Type:</label>
+        <select id="bh-type-select">
+          <option value="max">Maximum scores</option>
+          <option value="avg">Average scores</option>
+        </select>
+        <canvas id="baselineHistoricalChart" width="100%" height="40%"></canvas>
+        <br>
+        <table id="baseline-historical-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
+        <br>
 
-  </div>
-  </div>
-  <br><br>
+      </div>
+    </div>
+    <br><br>
 
+{% if fatigueList.length == 0 %}
+    <div class="card">
+      <h5 class="card-header">Featured: fatigue protocols</h5>
+      <div class="card-body">
+        <p class="card-text">Fatigue protocols are designed to investigate how your performance breaks down when you become fatigued, this can help set limits for training intensity and inform decisions about recovery.
+          Becoming fatigued impacts your ability to generate force rapidly. The solid lines represent your maximum (fresh) capability, while the dashed lines represent your best efforts in a fatigued state.
+        </p>
+        <h5 class="card-title">Last fatigue session:</h5>
+        <label for="fatigue-select">Select a fatigue session from the list of your saved data:</label>
+        <select id="fatigue-select">
+          {% for session in fatigueList %}
+          <option> {{ session }} </option>
+          }
+          {% endfor %}
+        </select>
+        <br><br>
+        <label for="fatigue-metric-select">Select Metric:</label>
+        <select id="fatigue-metric-select">
+          <option value="peak-crush-factor">Peak crush factor</option>
+          <option value="front-leg-peak-force">Front leg peak force</option>
+          <option value="back-leg-peak-force">Back leg peak force</option>
+          <option value="crush-factor-150ms">Crush factor at 150ms</option>
+          <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+          <option value="back-leg-force-150ms">Back leg force at 150ms</option>
+        </select>
+        <canvas id="myFatigueChart" width="100%" height="40%"></canvas>
+        <br>
+        <table id="last-fatigue-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
 
-  <div class="card">
-    <h5 class="card-header">Featured: fatigue protocols</h5>
-    <div class="card-body">
-      <p class="card-text">Fatigue protocols are designed to investigate how your performance breaks down when you become fatigued, this can help set limits for training intensity and inform decisions about recovery.
-    Becoming fatigued impacts your ability to generate force rapidly. The solid lines represent your maximum (fresh) capability, while the dashed lines represent your best efforts in a fatigued state.
-    </p>
-  <h5 class="card-title">Last fatigue session:</h5>
-    <p> <strong>Protocol:</strong> {{ lastFatigueList[0]|safe }}
-      <strong>Date:</strong> {{ lastFatigueList[1]|safe }}</p>
-<label for="fatigue-metric-select">Select Metric:</label>
-<select id="fatigue-metric-select">
- <option value="peak-crush-factor">Peak crush factor</option>
-    <option value="front-leg-peak-force">Front leg peak force</option>
-    <option value="back-leg-peak-force">Back leg peak force</option>
-    <option value="crush-factor-150ms">Crush factor at 150ms</option>
-    <option value="front-leg-force-150ms">Front leg force at 150ms</option>
-    <option value="back-leg-force-150ms">Back leg force at 150ms</option>
-</select>
-    <canvas id="myFatigueChart" width="100%" height="40%"></canvas>
-    <br>
-    <table id="last-fatigue-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
-
-  <br><hr><br>
-    <h5 class="card-title">Fatigue test progress tracker:</h5>
-    <p> Track your progress over time across all fatigue protocols </p>
+        <br>
+        <hr><br>
+        <h5 class="card-title">Fatigue test progress tracker:</h5>
+        <p> Track your progress over time across all fatigue protocols </p>
         <!-- First dropdown for selecting the metric -->
-  <label for="fh-metric-select">Select Metric:</label>
-  <select id="fh-metric-select">
-    <option value="peak-crush-factor">Peak crush factor</option>
-    <option value="front-leg-peak-force">Front leg peak force</option>
-    <option value="back-leg-peak-force">Back leg peak force</option>
-    <option value="crush-factor-150ms">Crush factor at 150ms</option>
-    <option value="front-leg-force-150ms">Front leg force at 150ms</option>
-    <option value="back-leg-force-150ms">Back leg force at 150ms</option>
-  </select>
-  <!-- Second dropdown for selecting the data type -->
-  <label for="fh-type-select">Select Data Type:</label>
-  <select id="fh-type-select">
-    <option value="max">Maximum scores</option>
-    <option value="avg">Average scores</option>
-  </select>
-    <canvas id="fatigueHistoricalChart" width="100%" height="40%"></canvas>
-    <br>
-    <table id="fatigue-historical-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
-<br>
-</div>
-  </div>
-<br><br>
-  <div class="card">
-  <h5 class="card-header">Featured: Summary report</h5>
-  <div class="card-body" style="text-align:center">
-  <p class="card-text" style="text-align:left"> View best, worst and average peak force scores across each protocol, transition zone and leg: </p>
-     {{ report|safe }}
-  </div>
-  </div>
+        <label for="fh-metric-select">Select Metric:</label>
+        <select id="fh-metric-select">
+          <option value="peak-crush-factor">Peak crush factor</option>
+          <option value="front-leg-peak-force">Front leg peak force</option>
+          <option value="back-leg-peak-force">Back leg peak force</option>
+          <option value="crush-factor-150ms">Crush factor at 150ms</option>
+          <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+          <option value="back-leg-force-150ms">Back leg force at 150ms</option>
+        </select>
+        <!-- Second dropdown for selecting the data type -->
+        <label for="fh-type-select">Select Data Type:</label>
+        <select id="fh-type-select">
+          <option value="max">Maximum scores</option>
+          <option value="avg">Average scores</option>
+        </select>
+        <canvas id="fatigueHistoricalChart" width="100%" height="40%"></canvas>
+        <br>
+        <table id="fatigue-historical-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
+        <br>
+      </div>
+    </div>
+    <br><br>
+{% endif %}
+    <div class="card">
+      <h5 class="card-header">Featured: Summary report</h5>
+      <div class="card-body" style="text-align:center">
+        <p class="card-text" style="text-align:left"> View best, worst and average peak force scores across each protocol, transition zone and leg: </p>
+        {{ report|safe }}
+      </div>
+    </div>
+
 
   <script>
   // Get the data from the LHTZ_data and RHTZ_data dictionaries
@@ -264,13 +292,18 @@ var myChart = new Chart(ctx, {
 });
 
 // Get references to the select elements
+var sessionSelect = document.getElementById("baseline-select");
+sessionSelect.addEventListener("change", updateChart);
 var metricSelect = document.getElementById("metric-select");
 metricSelect.addEventListener("change", updateChart);
 // Function to update the chart when a new option is selected
 function updateChart() {
+    var sessions = {{ sessions|tojson|safe }}
+    var selectedSession = sessionSelect.options[sessionSelect.selectedIndex].text;
+    var sessionData = getSessionData(sessions, selectedSession);
     var table1 = document.getElementById("last-baseline-table")
     var selectedMetric = metricSelect.options[metricSelect.selectedIndex].text;
-    var filteredData1 = filterDataSession(selectedMetric, LHTZ_data, RHTZ_data);
+    var filteredData1 = filterDataSession(selectedMetric, sessionData['LHTZ'], sessionData['RHTZ']);
     updateChartDataSession(filteredData1, myChart);
     updateTable(filteredData1, table1);
   }
@@ -379,14 +412,20 @@ const myFatigueChart = new Chart(ctx2, {
       }
   });
 
+
 // Get references to the select elements
+var sessionSelect2 = document.getElementById("fatigue-select");
+sessionSelect2.addEventListener("change", updateChart2);
 var metricSelect2 = document.getElementById("fatigue-metric-select");
 metricSelect2.addEventListener("change", updateChart2);
 // Function to update the chart when a new option is selected
 function updateChart2() {
+    var sessions2 = {{ sessions|tojson|safe }}
+    var selectedSession2 = sessionSelect2.options[sessionSelect2.selectedIndex].text;
+    var sessionData2 = getSessionData(sessions2, selectedSession2);
     var table2 = document.getElementById("last-fatigue-table")
     var selectedMetric2 = metricSelect2.options[metricSelect2.selectedIndex].text;
-    var filteredData2 = filterDataSession(selectedMetric2, LHTZ_data2, RHTZ_data2);
+    var filteredData2 = filterDataSession(selectedMetric2, sessionData2['LHTZ'], sessionData2['RHTZ']);
     updateChartDataSession(filteredData2, myFatigueChart);
     updateTable(filteredData2, table2);
   }
@@ -703,7 +742,6 @@ for (var i = 0; i < LHTZ_FLchartData.length; i++) {
     TZ_asym.push(asym)
 };
 
-
 // Get the labels for the chart
 var labels = LHTZ_data['session']['index'];
 
@@ -714,7 +752,7 @@ const lbCombinedCrush = new Chart(ctx6, {
   data: {
     labels: labels,
     datasets: [{
-        label: 'Transition zone asymmetry',
+        label: 'Asymmetry',
         data: TZ_asym,
         borderColor: [
           'black'
@@ -724,32 +762,32 @@ const lbCombinedCrush = new Chart(ctx6, {
         type: 'line'
       },
       {
-        label: 'LHTZ front leg',
+        label: 'LHTZ FL',
         data: LHTZ_FLchartData,
         backgroundColor: [
-          'rgba(255, 159, 64, 0.8)'
+          'rgba(255, 99, 132, 0.6)'
         ],
         borderColor: [
-          'rgba(255, 159, 64, 1)'
+          'rgba(255, 99, 132, 1)'
         ],
         yAxisID: 'y',
         borderWidth: 1
       },
       {
-        label: 'LHTZ back leg',
+        label: 'LHTZ BL',
         data: LHTZ_BLchartData,
         backgroundColor: [
-          'rgba(255, 159, 64, 0.2)'
+         'rgba(255, 99, 132, 0.2)'
         ],
         yAxisID: 'y',
         borderColor: [
-          'rgba(255, 159, 64, 1)'
+          'rgba(255, 99, 132, 1)'
 
         ],
         borderWidth: 1
       },
       {
-        label: 'RHTZ front leg',
+        label: 'RHTZ FL',
         data: RHTZ_FLchartData,
         backgroundColor: [
           'rgba(100, 149, 237, 0.8)'
@@ -761,7 +799,7 @@ const lbCombinedCrush = new Chart(ctx6, {
         borderWidth: 1
       },
       {
-        label: 'RHTZ back leg',
+        label: 'RHTZ BL',
         data: RHTZ_BLchartData,
         backgroundColor: [
           'rgba(100, 149, 237, 0.2)'
@@ -779,7 +817,7 @@ const lbCombinedCrush = new Chart(ctx6, {
       y: {
         stacked: true,
         title: {
-          text: 'Force (kg)',
+          text: 'Peak force (kg)',
           color: 'black',
           display: true
         },
@@ -828,6 +866,28 @@ const lbCombinedCrush = new Chart(ctx6, {
     }
   }
 });
+
+// Get references to the select elements
+var sessionSelect5 = document.getElementById("baseline-select");
+sessionSelect5.addEventListener("change", updateChart5);
+var metricSelect5 = document.getElementById("asym-select");
+metricSelect5.addEventListener("change", updateChart5);
+var dataSelect5 = document.getElementById("cc-metric-select");
+dataSelect5.addEventListener("change", updateChart5);
+// Function to update the chart when a new option is selected
+function updateChart5() {
+    var sessions5 = {{ sessions|tojson|safe }}
+    var selectedSession5 = sessionSelect5.options[sessionSelect5.selectedIndex].text;
+    var sessionData5 = getSessionData(sessions5, selectedSession5);
+    var table5 = document.getElementById("last-baseline-cc-table")
+    var selectedMetric5 = metricSelect5.options[metricSelect5.selectedIndex].text;
+    var selectedData5 = dataSelect5.options[dataSelect5.selectedIndex].text;
+    chartData = getAsymMetric(selectedData5, sessionData5['LHTZ'], sessionData5['RHTZ']);
+    var TZ_asym = getAsym(selectedMetric5, chartData);
+    updateChartDataAsym(TZ_asym, chartData, lbCombinedCrush);
+    updateTableAsym(TZ_asym, chartData, table5);
+  }
+updateChart5();
   </script>
 
 

@@ -135,6 +135,7 @@ def login():
     #validate form
     if form.validate_on_submit():
         user = Login.query.filter_by(username=form.uname.data).first()
+        ID = user.id
         if user is None:
             flash("Username incorrect, please try again.")
         else:
@@ -169,15 +170,14 @@ def dashboard():
             'player':playerform
             }
     uname = current_user.username
-    user = Login.query.filter_by(username = uname).first()
-    ID = user.id
-    squads = list(np.unique(np.array([player.Org for player in PlayerProfiles.query.filter_by(loginID=ID).all()])))
+    user = Login.query.filter_by(username=uname).first()
+    squads = list(np.unique(np.array([player.Org for player in PlayerProfiles.query.filter_by(loginID=current_user.id).all()])))
     try:
-        pros = list(np.unique(np.array([player.Protocol for player in PlayerData.query.filter_by(Org=squads[0]).all()])))
+        pros = list(np.unique(np.array([player.Protocol for player in PlayerData.query.filter_by(Org=squads[0], loginID=current_user.id).all()])))
         squadform.org.choices = [squad for squad in squads]
         squadform.pro.choices = [pro for pro in pros]
         playerform.squad.choices = squads
-        playerform.name.choices = [player.User for player in PlayerProfiles.query.filter_by(Org=squads[0]).all()]
+        playerform.name.choices = [player.User for player in PlayerProfiles.query.filter_by(Org=squads[0], loginID=current_user.id).all()]
     except:
         squadform.org.choices = ['No squad data - create user profiles on your Biostrain app!']
         squadform.pro.choices = []
@@ -189,16 +189,18 @@ def dashboard():
             org = request.form['org']
             pro = request.form['pro']
             squadTestData = PlayerData.query.filter_by(Org=org, Protocol=pro)
-            squadProData, allTests, allDates = pb.getSquadDict(squadTestData, pro)
+            squadProData, squadProDateData, allTests, allDates, testDates = pb.getSquadDict(squadTestData, pro)
             return render_template('squad.html',
                                    pro=pro,
                                    squadProData=squadProData,
+                                   squadProDateData=squadProDateData,
                                    allDates=allDates,
-                                   allTests=allTests
+                                   allTests=allTests,
+                                   testDates=testDates
                                    )
         except:
             name = request.form['name']
-            playerTestData = PlayerData.query.filter_by(User=name, loginID=ID)
+            playerTestData = PlayerData.query.filter_by(loginID=current_user.id, User=name)
             sessions, lastBaseline, baselineList, lastFatigue, fatigueList, dates, numTests = pb.getPlayerDict(playerTestData)
             try:
                 LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
@@ -217,6 +219,8 @@ def dashboard():
 
             return render_template('player.html',
                                    sessions=sessions,
+                                   baselineList=baselineList,
+                                   fatigueList=fatigueList,
                                    lastBaselineList=lastBaselineList,
                                    lastFatigueList=lastFatigueList,
                                    dates=dates,
@@ -257,9 +261,7 @@ def device():
 @login_required
 def playerSelect(squad):
     uname = current_user.username
-    user = Login.query.filter_by(username = uname).first()
-    ID = user.id
-    players = PlayerProfiles.query.filter_by(Org=squad, loginID=ID).all()
+    players = PlayerProfiles    .query.filter_by(loginID=current_user.id, Org=squad).all()
 
     playerArray=[]
 
@@ -276,9 +278,7 @@ def playerSelect(squad):
 @login_required
 def squadSelect(squad):
     uname = current_user.username
-    user = Login.query.filter_by(username = uname).first()
-    ID = user.id
-    protocols = PlayerData.query.filter_by(Org=squad, loginID=ID).all()
+    protocols = PlayerData.query.filter_by(loginID=current_user.id, Org=squad).all()
 
     proArray=[]
 

@@ -2,6 +2,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
+<script src="/static/js/graphingFunctions.js"></script>
   <html lang="en">
   <head>
       <meta charset="UTF-8">
@@ -36,34 +37,66 @@
   <br><br>
 
   <div class="card">
-  <h5 class="card-header">Featured: top performers</h5>
+  <h5 class="card-header">Featured: All-time performance</h5>
   <div class="card-body">
-    <h5 class="card-title"> Most recent sessions </h5>
-    <p class="card-text">Take a look at each squad member's most recent <strong>{{ pro }}</strong> protocol session.</p>
-  <label for="sh-metric-select">Select Metric:</label>
-    <select id="sh-metric-select">
-      <option value="peak-crush-factor">Peak crush factor</option>
-      <option value="front-leg-peak-force">Front leg peak force</option>
-      <option value="back-leg-peak-force">Back leg peak force</option>
-      <option value="crush-factor-150ms">Crush factor at 150ms</option>
-      <option value="front-leg-force-150ms">Front leg force at 150ms</option>
-      <option value="back-leg-force-150ms">Back leg force at 150ms</option>
-    </select>
-    <!-- Second dropdown for selecting the data type -->
-    <label for="sh-type-select">Select Data Type:</label>
-    <select id="sh-type-select">
-      <option value="max">Maximum scores</option>
-      <option value="avg">Average scores</option>
-    </select>
-      <canvas id="squadHistoricalChart" width="100%" height="40%"></canvas>
+    <h5 class="card-title"> Top performers </h5>
+    <p class="card-text">Compare each squad member's performance in <strong>{{ pro }}</strong> protocol.</p>
+      <label for="sh-metric-select">Select Metric:</label>
+        <select id="sh-metric-select">
+          <option value="peak-crush-factor">Peak crush factor</option>
+          <option value="front-leg-peak-force">Front leg peak force</option>
+          <option value="back-leg-peak-force">Back leg peak force</option>
+          <option value="crush-factor-150ms">Crush factor at 150ms</option>
+          <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+          <option value="back-leg-force-150ms">Back leg force at 150ms</option>
+        </select>
+        <!-- Second dropdown for selecting the data type -->
+        <label for="sh-type-select">Select Data Type:</label>
+        <select id="sh-type-select">
+          <option value="max">Maximum scores</option>
+          <option value="avg">Average scores</option>
+        </select>
+      <canvas id="squadHistoricalChart" width="100%" height="55%"></canvas>
       <br>
       <table id="squad-historical-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
     <br>
     <hr>
   </div>
   </div>
-
-
+<br><br>
+<div class="card">
+  <h5 class="card-header">Featured: session performance</h5>
+  <div class="card-body">
+    <h5 class="card-title"> Isolated sessions </h5>
+    <p class="card-text">Compare each squad member's performance in <strong>{{ pro }}</strong> protocol on the selected date.</p>
+    <label for="shd-date-select">Select Session Date:</label>
+        <select id="shd-date-select">
+          {% for date in testDates %}
+          <option> {{ date }} </option>
+          {% endfor %}
+        </select>
+      <label for="shd-metric-select">Select Metric:</label>
+        <select id="shd-metric-select">
+          <option value="peak-crush-factor">Peak crush factor</option>
+          <option value="front-leg-peak-force">Front leg peak force</option>
+          <option value="back-leg-peak-force">Back leg peak force</option>
+          <option value="crush-factor-150ms">Crush factor at 150ms</option>
+          <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+          <option value="back-leg-force-150ms">Back leg force at 150ms</option>
+        </select>
+        <!-- Second dropdown for selecting the data type -->
+        <label for="shd-type-select">Select Data Type:</label>
+        <select id="shd-type-select">
+          <option value="max">Maximum scores</option>
+          <option value="avg">Average scores</option>
+        </select>
+      <canvas id="squadDateHistoricalChart" width="100%" height="40%"></canvas>
+      <br>
+      <table id="squad-date-historical-table" class="table table-bordered border-dark" width="100%" style="text-align:center"></table>
+    <br>
+    <hr>
+  </div>
+  </div>
 
 
   <script>
@@ -86,7 +119,7 @@
             scales: {
                 y:{
                   min:0,
-                  max:20,
+                  max:50,
                   title:{
                     text: 'Number of completed tests',
                     display: true
@@ -190,7 +223,6 @@ const squadHistoricalChart = new Chart(ctx3, {
       },
       x: {
         title: {
-          text: 'User',
           color: 'black',
           display: true
         },
@@ -203,96 +235,158 @@ const squadHistoricalChart = new Chart(ctx3, {
       },
       yAxes: [{
         ticks: {
-          beginAtZero: true
+          beginAtZero: true,
         }
       }]
     }
   }
 });
 
-function filterData3(data, metric) {
-    // Retrieve the data for LHTZ and RHTZ
-    var dataDict = {{ squadProData|safe }};
-    // Extract the data for the chart
-    var LHTZ_data = [];
-    var RHTZ_data = [];
-    for (var session in dataDict) {
-      LHTZ_data.push(dataDict[session]['LHTZ'][data][metric][0]);
-      RHTZ_data.push(dataDict[session]['RHTZ'][data][metric][0]);
-    }
-
-    // Return the filtered data
-    return {'LHTZ': LHTZ_data, 'RHTZ': RHTZ_data};
-}
-
-function updateChartData3(filteredData3) {
-    // Update the data for the LHTZ dataset
-    squadHistoricalChart.data.datasets[0].data = filteredData3['LHTZ'];
-    // Update the data for the RHTZ dataset
-    squadHistoricalChart.data.datasets[1].data = filteredData3['RHTZ'];
-    // Update the chart
-    squadHistoricalChart.update();
-}
-
-function updateTable3(filteredData3) {
-    // Get a reference to the table element
-    var table = document.getElementById("squad-historical-table");
-    // Clear the existing content of the table
-    table.innerHTML = "";
-
-    // Create the table headers
-    var headers = ["User", "LHTZ score (kg)", "RHTZ score (kg)", "Asymmetry (%)"];
-    var headerRow = document.createElement("tr");
-    for (var i = 0; i < headers.length; i++) {
-        var headerCell = document.createElement("th");
-        headerCell.innerHTML = headers[i];
-        headerRow.appendChild(headerCell);
-    }
-    table.appendChild(headerRow);
-
-    // Create the table rows
-    for (var i = 0; i < session_names.length; i++) {
-        var row = document.createElement("tr");
-        var testCell = document.createElement("td");
-        testCell.innerHTML = session_names[i];
-        row.appendChild(testCell);
-
-        var LHTZValue = filteredData3['LHTZ'][i];
-        var RHTZValue = filteredData3['RHTZ'][i];
-        var LHTZCell = document.createElement("td");
-        LHTZCell.innerHTML = LHTZValue;
-        row.appendChild(LHTZCell);
-
-        var RHTZCell = document.createElement("td");
-        RHTZCell.innerHTML = RHTZValue;
-        row.appendChild(RHTZCell);
-
-        var percentageDiff = ((RHTZValue - LHTZValue) / LHTZValue) * 100;
-        var diffCell = document.createElement("td");
-        diffCell.innerHTML = percentageDiff.toFixed(2);
-        row.appendChild(diffCell);
-
-        table.appendChild(row);
-    }
-}
 
 // Get references to the select elements
 var metricSelect3 = document.getElementById("sh-metric-select");
-metricSelect3.addEventListener("change", updateChart3);
 var dataSelect3 = document.getElementById("sh-type-select");
+metricSelect3.addEventListener("change", updateChart3);
 dataSelect3.addEventListener("change", updateChart3);
 // Function to update the chart when a new option is selected
 function updateChart3() {
+    var table3 = document.getElementById("squad-historical-table")
     var selectedMetric3 = metricSelect3.options[metricSelect3.selectedIndex].text;
     var selectedData3 = dataSelect3.options[dataSelect3.selectedIndex].value;
-    var filteredData3 = filterData3(selectedData3, selectedMetric3);
-    updateChartData3(filteredData3);
-    updateTable3(filteredData3);
+    var filteredData3 = filterDataHistorical(selectedData3, selectedMetric3, data3);
+    updateChartDataHistorical(filteredData3, squadHistoricalChart, session_names);
+    updateTableHistorical(filteredData3, table3, session_names);
   }
 updateChart3();
 </script>
 
 
+<script>
+  // Get the data from the LHTZ_data and RHTZ_data dictionaries
+var data4 = {{ squadProDateData|tojson|safe }};
+
+// Extract the data for the chart
+var BH_LHTZ_data = [];
+var BH_RHTZ_data = [];
+var session_names2 = [];
+for (var session in data4) {
+	for (var user in data4[session]) {
+    BH_LHTZ_data.push(data4[session][user]['LHTZ']['max']['Front leg force at 150ms'][0]);
+    BH_RHTZ_data.push(data4[session][user]['RHTZ']['max']['Front leg force at 150ms'][0]);
+  	session_names2.push(user);
+    }
+}
+
+// Create a new chart
+const ctx4 = document.getElementById("squadDateHistoricalChart").getContext("2d");
+const squadDateHistoricalChart = new Chart(ctx4, {
+  type: "bar",
+  data: {
+    labels: session_names2,
+    datasets: [{
+        label: 'LHTZ',
+        data: BH_LHTZ_data,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.2)'
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)'
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ',
+        data: BH_RHTZ_data,
+        backgroundColor: [
+          'rgba(54, 162, 235, 0.2)'
+        ],
+        borderColor: [
+          'rgba(54, 162, 235, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function(tooltipItem) {
+            var Data = squadDateHistoricalChart.data;
+            var index = tooltipItem.dataIndex;
+            console.log(index)
+            var LHTZ_value = 0;
+            var RHTZ_value = 0;
+            if (Data && Data.datasets[0].data[index]) {
+                LHTZ_value = Data.datasets[0].data[index];
+            }
+            if (Data && Data.datasets[1].data[index]) {
+                RHTZ_value = Data.datasets[1].data[index];
+            }
+            var difference = RHTZ_value - LHTZ_value;
+            var difference_percent = (difference / LHTZ_value * 100).toFixed(2);
+            return "LHTZ: " + LHTZ_value + " kg\n" + "RHTZ: " + RHTZ_value + " kg\n" + "Asymmetry: " + difference_percent + "%";
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        title: {
+          text: 'Force (kg)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        title: {
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      yAxes: [{
+        ticks: {
+          beginAtZero: true,
+        }
+      }]
+    }
+  }
+});
+
+
+// Get references to the select elements
+var dateSelect = document.getElementById("shd-date-select");
+var metricSelect = document.getElementById("shd-metric-select");
+var dataSelect = document.getElementById("shd-type-select");
+metricSelect.addEventListener("change", updateChart);
+dataSelect.addEventListener("change", updateChart);
+dateSelect.addEventListener("change", updateChart);
+// Function to update the chart when a new option is selected
+function updateChart() {
+    var table = document.getElementById("squad-date-historical-table")
+    var selectedMetric = metricSelect.options[metricSelect.selectedIndex].text;
+    var selectedData = dataSelect.options[dataSelect.selectedIndex].value;
+    var selectedDate = dateSelect.options[dateSelect.selectedIndex].value;
+    var datedSession = getDatedSession(data4, selectedDate)
+    var datedSessionUsers = getDatedSessionUsers(datedSession)
+    var filteredData = filterDataHistorical(selectedData, selectedMetric, datedSession);
+    updateChartDataHistorical(filteredData, squadDateHistoricalChart, datedSessionUsers);
+    updateTableHistorical(filteredData, table, datedSessionUsers);
+  }
+updateChart();
+</script>
 
 
 

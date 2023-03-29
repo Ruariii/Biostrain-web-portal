@@ -108,18 +108,28 @@ def getPlayerDict(playerTestData):
         dates.append(date)
         numTests.append(len(tests['index']))
 
-    minDate = dates[0]
-    maxDate = datetime.now()
-    allDates = [datetime.strftime(minDate + timedelta(days=d), '%Y/%m/%d') for d in range((maxDate - minDate).days + 1)]
-    allTests = []
-    for day in allDates:
-        dayobj = datetime.strptime(day, '%Y/%m/%d')
-        if dayobj in dates:
-            allTests.append(numTests[dates.index(dayobj)])
-        else:
-            allTests.append(0)
+    try:
+        minDate = dates[0]
+        maxDate = datetime.now()
+        allDates = [datetime.strftime(minDate + timedelta(days=d), '%Y/%m/%d') for d in range((maxDate - minDate).days + 1)]
+        allTests = []
+        for day in allDates:
+            dayobj = datetime.strptime(day, '%Y/%m/%d')
+            if dayobj in dates:
+                allTests.append(numTests[dates.index(dayobj)])
+            else:
+                allTests.append(0)
+    except:
+        allTests, allDates = [], []
 
-    return sessions, lastBaseline, baselineList, lastFatigue, fatigueList, allDates, allTests
+    try:
+        last30dates = allDates[len(allDates)-31: len(allDates)-1]
+        last30tests = allTests[len(allTests) - 31: len(allTests) - 1]
+    except:
+        last30dates = allDates
+        last30tests = allTests
+
+    return sessions, lastBaseline, baselineList, lastFatigue, fatigueList, last30dates, last30tests
 
 
 def getPlayerTzDict(sessions, lastBaseline):
@@ -509,14 +519,13 @@ def getSquadDict(squadTestData, protocol):
         i += 1
 
     selectedProtocol = f': {protocol} :'
-
     # Filter the squadSessions dictionary to find all keys containing 'Baseline'
     proSessions = {k: v for k, v in squadSessions.items() if selectedProtocol in k}
 
     keys = [key for key, data in proSessions.items()]
     filteredKeys = []
     names = []
-    for key in keys[::-1]:
+    for key in keys[::]:
         name = key.split(' : ')[0]
         if name in names:
             continue
@@ -526,10 +535,19 @@ def getSquadDict(squadTestData, protocol):
 
     filteredSessions = {k: v for k, v in proSessions.items() if k in filteredKeys}
     squadProData = {}
+    squadProDateData = {}
+    testDates = []
     li, ri = 0, 0
     for key in filteredKeys:
         user = key.split(' : ')[0]
+        date = key.split(' : ')[2]
+        testDates.append(date)
         squadProData[user] = {}
+        squadProDateData[date] = {}
+    for key in filteredKeys:
+        user = key.split(' : ')[0]
+        date = key.split(' : ')[2]
+        squadProDateData[date][user] = {}
         # Pull out traces
         tzs = filteredSessions[key]['TZ']
         fl150 = filteredSessions[key]['Front leg force at 150ms']
@@ -678,6 +696,9 @@ def getSquadDict(squadTestData, protocol):
         squadProData[user]['LHTZ'] = LHTZ_data
         squadProData[user]['RHTZ'] = RHTZ_data
 
+        squadProDateData[date][user]['LHTZ'] = LHTZ_data
+        squadProDateData[date][user]['RHTZ'] = RHTZ_data
+
     dates, numTests = [], []
     for sessionName, tests in filteredSessions.items():
         date = datetime.strptime(sessionName.split(': ')[2], '%Y/%m/%d')
@@ -695,7 +716,7 @@ def getSquadDict(squadTestData, protocol):
         else:
             allTests.append(0)
 
-    return squadProData, allTests, allDates
+    return squadProData, squadProDateData, allTests, allDates, reversed(list(np.unique(np.array(testDates))))
 
 
 from statistics import mean
