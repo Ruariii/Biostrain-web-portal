@@ -11,7 +11,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import os
 import PBI_python_module as pb
 import numpy as np
-
+import requests
+from io import BytesIO
+from zipfile import ZipFile
+from sqlalchemy import create_engine
 
 #Create flask instance
 
@@ -20,13 +23,19 @@ app = Flask(__name__)
 # connect to Render database OR local database
 def connectDB():
     try:
-        database = os.environ['MYSQL_DATABASE']
-        user = os.environ['MYSQL_USER']
-        password = os.environ['MYSQL_PASSWORD']
-        root_password = os.environ['MYSQL_ROOT_PASSWORD']
-        port = os.environ['MYSQL_PORT']
-        engine = create_engine(f'mysql+pymysql://{user}:{password}@{port}/{database}')
-        app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{user}:{password}@{port}/{database}'
+        # Get the raw file from GitHub
+        url = "https://raw.githubusercontent.com/Ruariii/Biostrain-web-portal/master/biostrain.db"
+        response = requests.get(url)
+        # Connect to the SQLite database
+        engine = create_engine('sqlite://', connect_args={'check_same_thread': False})
+        # Create a connection to the database
+        conn = engine.raw_connection()
+        # Load the data from the raw file into the database
+        conn.executescript(response.content.decode('utf-8'))
+        # Close the database connection
+        conn.close()
+        # Set the database URI
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///biostrain.db'
         debugStatus = False
     except:
         engine = create_engine('sqlite:////Users/ruarihodgin/Desktop/Lucid/Biostrain/Biostrain-web-portal-main/biostrain.db')
@@ -188,9 +197,10 @@ def dashboard():
         try:
             org = request.form['org']
             pro = request.form['pro']
-            squadTestData = PlayerData.query.filter_by(Org=org, Protocol=pro)
-            squadProData, squadProDateData, allTests, allDates, testDates = pb.getSquadDict(squadTestData, pro)
+            squadTestData = PlayerData.query.filter_by(loginID=current_user.id, Org=org, Protocol=pro)
+            squadProData, squadProDateData, allTests, allDates, testDates, squadData = pb.getSquadDict(squadTestData, pro)
             return render_template('squad.html',
+                                   squadData=squadData,
                                    pro=pro,
                                    squadProData=squadProData,
                                    squadProDateData=squadProDateData,
@@ -199,8 +209,9 @@ def dashboard():
                                    testDates=testDates
                                    )
         except:
+            org = request.form['squad']
             name = request.form['name']
-            playerTestData = PlayerData.query.filter_by(loginID=current_user.id, User=name)
+            playerTestData = PlayerData.query.filter_by(loginID=current_user.id, User=name, Org=org)
             sessions, lastBaseline, baselineList, lastFatigue, fatigueList, dates, numTests = pb.getPlayerDict(playerTestData)
             try:
                 LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)

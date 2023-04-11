@@ -102,6 +102,7 @@ def getPlayerDict(playerTestData):
             if lastBaseline == '':
                 lastBaseline = session
 
+
     dates, numTests = [], []
     for sessionName, tests in sessions.items():
         date = datetime.strptime(sessionName.split(': ')[1], '%Y/%m/%d')
@@ -111,7 +112,7 @@ def getPlayerDict(playerTestData):
     try:
         minDate = dates[0]
         maxDate = datetime.now()
-        allDates = [datetime.strftime(minDate + timedelta(days=d), '%Y/%m/%d') for d in range((maxDate - minDate).days + 1)]
+        allDates = [datetime.strftime(minDate + timedelta(days=d), '%Y/%m/%d') for d in range((maxDate - minDate).days + 2)]
         allTests = []
         for day in allDates:
             dayobj = datetime.strptime(day, '%Y/%m/%d')
@@ -123,8 +124,8 @@ def getPlayerDict(playerTestData):
         allTests, allDates = [], []
 
     try:
-        last30dates = allDates[len(allDates)-31: len(allDates)-1]
-        last30tests = allTests[len(allTests) - 31: len(allTests) - 1]
+        last30dates = allDates[len(allDates)-32: len(allDates)-1]
+        last30tests = allTests[len(allTests) - 32: len(allTests) - 1]
     except:
         last30dates = allDates
         last30tests = allTests
@@ -451,7 +452,7 @@ def getHistoricalDict(sessions, baselineList):
     return baselineData
 
 
-def getSquadDict(squadTestData, protocol):
+def getSquadDict(squadTestData, Protocol):
     squadData = []
     for i in squadTestData:
         squadData.append((i.id, i.Org, i.User, i.Timestamp, i.Protocol, i.TZ,
@@ -466,8 +467,8 @@ def getSquadDict(squadTestData, protocol):
     minute = 60
     timeadj = []
     j = 0
-    for i in range(len(timestamps)):
-        timeadj.append(round(timestamps[i] + (minute * j)))
+    for t in range(len(timestamps)):
+        timeadj.append(round(timestamps[t] + (minute * j)))
         j += 1
     i = 0
     squadSessions = {}
@@ -475,7 +476,6 @@ def getSquadDict(squadTestData, protocol):
         user = row[2]
         date = datetime.fromtimestamp(timeadj[i]).strftime("%Y/%m/%d")
         protocol = row[4]
-        index = row[0]
 
         squadSessions[f'{user} : {protocol} : {date}'] = {}
         squadSessions[f'{user} : {protocol} : {date}']['index'] = []
@@ -518,7 +518,7 @@ def getSquadDict(squadTestData, protocol):
         squadSessions[f'{user} : {protocol} : {date}']['Peak crush factor'].append(crpeak)
         i += 1
 
-    selectedProtocol = f': {protocol} :'
+    selectedProtocol = f': {Protocol} :'
     # Filter the squadSessions dictionary to find all keys containing 'Baseline'
     proSessions = {k: v for k, v in squadSessions.items() if selectedProtocol in k}
 
@@ -527,7 +527,8 @@ def getSquadDict(squadTestData, protocol):
     names = []
     for key in keys[::]:
         name = key.split(' : ')[0]
-        if name in names:
+        date = key.split(' : ')[2]
+        if f'{name} : {date}' in keys:
             continue
         else:
             filteredKeys.append(key)
@@ -716,7 +717,7 @@ def getSquadDict(squadTestData, protocol):
         else:
             allTests.append(0)
 
-    return squadProData, squadProDateData, allTests, allDates, reversed(list(np.unique(np.array(testDates))))
+    return squadProData, squadProDateData, allTests, allDates, reversed(list(np.unique(np.array(testDates)))), filteredKeys
 
 
 from statistics import mean
