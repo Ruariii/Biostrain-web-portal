@@ -12,8 +12,6 @@ import os
 import PBI_python_module as pb
 import numpy as np
 import requests
-from io import BytesIO
-from zipfile import ZipFile
 from sqlalchemy import create_engine
 
 #Create flask instance
@@ -27,7 +25,7 @@ def connectDB():
         url = "https://raw.githubusercontent.com/Ruariii/Biostrain-web-portal/master/biostrain.db"
         response = requests.get(url)
         # Connect to the SQLite database
-        engine = create_engine('sqlite://', connect_args={'check_same_thread': False})
+        engine = create_engine('sqlite:///biostrain.db', connect_args={'check_same_thread': False})
         # Create a connection to the database
         conn = engine.raw_connection()
         # Load the data from the raw file into the database
@@ -212,7 +210,9 @@ def dashboard():
             org = request.form['squad']
             name = request.form['name']
             playerTestData = PlayerData.query.filter_by(loginID=current_user.id, User=name, Org=org)
-            sessions, lastBaseline, baselineList, lastFatigue, fatigueList, dates, numTests = pb.getPlayerDict(playerTestData)
+            sessions, lastBaseline, baselineList, baselineProtocolList, \
+            lastFatigue, fatigueList, fatigueProtocolList, dates, numTests = pb.getPlayerDict(playerTestData)
+
             try:
                 LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
             except:
@@ -231,6 +231,8 @@ def dashboard():
             return render_template('player.html',
                                    sessions=sessions,
                                    baselineList=baselineList,
+                                   baselineProtocolList=baselineProtocolList,
+                                   fatigueProtocolList=fatigueProtocolList,
                                    fatigueList=fatigueList,
                                    lastBaselineList=lastBaselineList,
                                    lastFatigueList=lastFatigueList,

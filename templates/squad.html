@@ -108,7 +108,7 @@
           data: {{ allTests|safe }},
           fill: true,
           borderColor: 'rgb(100, 75, 185)',
-          tension: 0.05
+          tension: 0.25
         }]
       }
 
@@ -253,7 +253,7 @@ function updateChart3() {
     var table3 = document.getElementById("squad-historical-table")
     var selectedMetric3 = metricSelect3.options[metricSelect3.selectedIndex].text;
     var selectedData3 = dataSelect3.options[dataSelect3.selectedIndex].value;
-    var filteredData3 = filterDataHistorical(selectedData3, selectedMetric3, data3);
+    var filteredData3 = filterDataSquad(selectedData3, selectedMetric3, data3);
     updateChartDataHistorical(filteredData3, squadHistoricalChart, session_names);
     updateTableHistorical(filteredData3, table3, session_names);
   }
@@ -381,16 +381,13 @@ function updateChart() {
     var selectedDate = dateSelect.options[dateSelect.selectedIndex].value;
     var datedSession = getDatedSession(data4, selectedDate)
     var datedSessionUsers = getDatedSessionUsers(datedSession)
-    var filteredData = filterDataHistorical(selectedData, selectedMetric, datedSession);
+    var filteredData = filterDataSquad(selectedData, selectedMetric, datedSession);
     updateChartDataHistorical(filteredData, squadDateHistoricalChart, datedSessionUsers);
     updateTableHistorical(filteredData, table, datedSessionUsers);
   }
 updateChart();
 </script>
 
-<script>
-  var bing = {{squadData|safe}}
-</script>
 
   </body>
 {% endblock %}

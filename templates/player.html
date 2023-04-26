@@ -99,6 +99,13 @@
         <hr><br>
         <h5 class="card-title">Baseline progress tracker:</h5>
         <p> Track your progress over time across all baseline protocols </p>
+        <label for="bh-pro-select">Select Baseline Protocol:</label>
+        <select id="bh-pro-select">
+          <option> All protocols </option>
+          {% for protocol in baselineProtocolList %}
+          <option> {{ protocol }} </option>
+          {% endfor %}
+        </select>
         <!-- First dropdown for selecting the metric -->
         <label for="bh-metric-select">Select Metric:</label>
         <select id="bh-metric-select">
@@ -124,7 +131,7 @@
     </div>
     <br><br>
 
-{% if fatigueList.length == 0 %}
+{% if fatigueList|length > 0 %}
     <div class="card">
       <h5 class="card-header">Featured: fatigue protocols</h5>
       <div class="card-body">
@@ -136,7 +143,6 @@
         <select id="fatigue-select">
           {% for session in fatigueList %}
           <option> {{ session }} </option>
-          }
           {% endfor %}
         </select>
         <br><br>
@@ -157,6 +163,13 @@
         <hr><br>
         <h5 class="card-title">Fatigue test progress tracker:</h5>
         <p> Track your progress over time across all fatigue protocols </p>
+        <label for="fh-pro-select">Select Fatigue Protocol:</label>
+        <select id="fh-pro-select">
+          <option> All protocols </option>
+          {% for protocol in fatigueProtocolList %}
+          <option> {{ protocol }} </option>
+          {% endfor %}
+        </select>
         <!-- First dropdown for selecting the metric -->
         <label for="fh-metric-select">Select Metric:</label>
         <select id="fh-metric-select">
@@ -499,7 +512,22 @@ const baselineHistoricalChart = new Chart(ctx3, {
             }
             var difference = RHTZ_value - LHTZ_value;
             var difference_percent = (difference / LHTZ_value * 100).toFixed(2);
-            return "LHTZ: " + LHTZ_value + " kg\n" + "RHTZ: " + RHTZ_value + " kg\n" + "Asymmetry: " + difference_percent + "%";
+
+            var max_score_L = Math.max(...Data.datasets[0].data);
+            var max_difference_L = max_score_L - LHTZ_value;
+            var max_difference_percent_L = (max_difference_L / max_score_L * 100).toFixed(2);
+
+            var max_score_R = Math.max(...Data.datasets[1].data);
+            var max_difference_R = max_score_R - RHTZ_value;
+            var max_difference_percent_R = (max_difference_R / max_score_R * 100).toFixed(2);
+            label0 = ""
+            label1 = "- LHTZ score: " + LHTZ_value + " kg";
+            label2 = "- RHTZ score: " + RHTZ_value + " kg";
+            label3 = "- Drop off from maximum (LHTZ): " + max_difference_percent_L + "%";
+            label4 = "- Drop off from maximum (RHTZ): " + max_difference_percent_R + "%";
+            label5 = "- RHTZ/LHTZ Asymmetry: " + difference_percent + "%";
+            return [label0,label1,label2,label3,label4,label5]
+
           }
         }
       }
@@ -541,17 +569,20 @@ const baselineHistoricalChart = new Chart(ctx3, {
 });
 
 // Get references to the select elements
+var protocolSelect3 = document.getElementById("bh-pro-select");
 var metricSelect3 = document.getElementById("bh-metric-select");
 var dataSelect3 = document.getElementById("bh-type-select");
+protocolSelect3.addEventListener("change", updateChart3);
 metricSelect3.addEventListener("change", updateChart3);
 dataSelect3.addEventListener("change", updateChart3);
 // Function to update the chart when a new option is selected
 function updateChart3() {
     var table3 = document.getElementById("baseline-historical-table")
+    var selectedProtocol3 = protocolSelect3.options[protocolSelect3.selectedIndex].text;
     var selectedMetric3 = metricSelect3.options[metricSelect3.selectedIndex].text;
     var selectedData3 = dataSelect3.options[dataSelect3.selectedIndex].value;
-    var filteredData3 = filterDataHistorical(selectedData3, selectedMetric3, data3);
-    updateChartDataSession(filteredData3, baselineHistoricalChart);
+    var filteredData3 = filterDataHistorical(selectedProtocol3, selectedData3, selectedMetric3, data3);
+    updateChartDataHistorical(filteredData3, baselineHistoricalChart);
     updateTableHistorical(filteredData3, table3, session_names);
   }
 updateChart3();
@@ -610,20 +641,35 @@ const fatigueHistoricalChart = new Chart(ctx4, {
         tooltip: {
           callbacks: {
             label: function(tooltipItem) {
-              var Data = fatigueHistoricalChart.data;
-              var index = tooltipItem.dataIndex;
-              console.log(index)
-              var LHTZ_value = 0;
-              var RHTZ_value = 0;
-              if (Data && Data.datasets[0].data[index]) {
-                  LHTZ_value = Data.datasets[0].data[index];
-              }
-              if (Data && Data.datasets[1].data[index]) {
-                  RHTZ_value = Data.datasets[1].data[index];
-              }
-              var difference = RHTZ_value - LHTZ_value;
-              var difference_percent = (difference / LHTZ_value * 100).toFixed(2);
-              return "LHTZ: " + LHTZ_value + " kg\n" + "RHTZ: " + RHTZ_value + " kg\n" + "Asymmetry: " + difference_percent + "%";
+            var Data = baselineHistoricalChart.data;
+            var index = tooltipItem.dataIndex;
+            console.log(index)
+            var LHTZ_value = 0;
+            var RHTZ_value = 0;
+            if (Data && Data.datasets[0].data[index]) {
+                LHTZ_value = Data.datasets[0].data[index];
+            }
+            if (Data && Data.datasets[1].data[index]) {
+                RHTZ_value = Data.datasets[1].data[index];
+            }
+            var difference = RHTZ_value - LHTZ_value;
+            var difference_percent = (difference / LHTZ_value * 100).toFixed(2);
+
+            var max_score_L = Math.max(...Data.datasets[0].data);
+            var max_difference_L = max_score_L - LHTZ_value;
+            var max_difference_percent_L = (max_difference_L / max_score_L * 100).toFixed(2);
+
+            var max_score_R = Math.max(...Data.datasets[1].data);
+            var max_difference_R = max_score_R - RHTZ_value;
+            var max_difference_percent_R = (max_difference_R / max_score_R * 100).toFixed(2);
+
+            label1 = "LHTZ: " + LHTZ_value + " kg";
+            label2 = "RHTZ: " + RHTZ_value + " kg";
+            label3 =  "Drop off from maximum (LHTZ): " + max_difference_percent_L + "%";
+            label4 = "Drop off from maximum (RHTZ): " + max_difference_percent_R + "%";
+            label5 = "RHTZ/LHTZ Asymmetry: " + difference_percent + "%";
+            return [label1,label2,label3,label4,label5]
+
             }
           }
         }
@@ -665,16 +711,19 @@ const fatigueHistoricalChart = new Chart(ctx4, {
 });
 
 // Get references to the select elements
+var protocolSelect4 = document.getElementById("fh-pro-select");
 var metricSelect4 = document.getElementById("fh-metric-select");
 var dataSelect4 = document.getElementById("fh-type-select");
+protocolSelect4.addEventListener("change", updateChart4);
 metricSelect4.addEventListener("change", updateChart4);
 dataSelect4.addEventListener("change", updateChart4);
 // Function to update the chart when a new option is selected
 function updateChart4() {
     var table4 = document.getElementById("fatigue-historical-table")
+    var protocolMetric4 = protocolSelect4.options[protocolSelect4.selectedIndex].text;
     var selectedMetric4 = metricSelect4.options[metricSelect4.selectedIndex].text;
     var selectedData4 = dataSelect4.options[dataSelect4.selectedIndex].value;
-    var filteredData4 = filterDataHistorical(selectedData4, selectedMetric4, data4);
+    var filteredData4 = filterDataHistorical(protocolMetric4, selectedData4, selectedMetric4, data4);
     updateChartDataSession(filteredData4, fatigueHistoricalChart);
     updateTableHistorical(filteredData4, table4, session_names2);
   }
@@ -696,7 +745,7 @@ updateChart4();
           data: {{ numTests|safe }},
           fill: true,
           borderColor: 'rgb(100, 75, 185)',
-          tension: 0.05
+          tension: 0.25
         }]
       }
 
@@ -708,7 +757,7 @@ updateChart4();
           scales: {
             y: {
               min: 0,
-              max: 40,
+              max: 25,
               title: {
                 text: 'Number of completed tests',
                 display: true

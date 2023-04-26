@@ -102,6 +102,25 @@ def getPlayerDict(playerTestData):
             if lastBaseline == '':
                 lastBaseline = session
 
+    fatigueProtocolList = []
+    for session in fatigueList:
+        sessionStr = str(session)
+        protocolStr = sessionStr[0:len(sessionStr)-12]
+        if protocolStr in fatigueProtocolList:
+            continue
+        else:
+            fatigueProtocolList.append(protocolStr)
+
+    baselineProtocolList = []
+    for session in baselineList:
+        sessionStr = str(session)
+        protocolStr = sessionStr[0:len(sessionStr) - 12]
+        if protocolStr in baselineProtocolList:
+            continue
+        else:
+            baselineProtocolList.append(protocolStr)
+
+
 
     dates, numTests = [], []
     for sessionName, tests in sessions.items():
@@ -109,28 +128,18 @@ def getPlayerDict(playerTestData):
         dates.append(date)
         numTests.append(len(tests['index']))
 
-    try:
-        minDate = dates[0]
-        maxDate = datetime.now()
-        allDates = [datetime.strftime(minDate + timedelta(days=d), '%Y/%m/%d') for d in range((maxDate - minDate).days + 2)]
-        allTests = []
-        for day in allDates:
-            dayobj = datetime.strptime(day, '%Y/%m/%d')
-            if dayobj in dates:
-                allTests.append(numTests[dates.index(dayobj)])
-            else:
-                allTests.append(0)
-    except:
-        allTests, allDates = [], []
+    minDate = dates[0]
+    maxDate = datetime.now()
+    allDates = [datetime.strftime(minDate + timedelta(days=d), '%Y/%m/%d') for d in range((maxDate - minDate).days + 1)]
+    allTests = []
+    for day in allDates:
+        dayobj = datetime.strptime(day, '%Y/%m/%d')
+        if dayobj in dates:
+            allTests.append(numTests[dates.index(dayobj)])
+        else:
+            allTests.append(0)
 
-    try:
-        last30dates = allDates[len(allDates)-32: len(allDates)-1]
-        last30tests = allTests[len(allTests) - 32: len(allTests) - 1]
-    except:
-        last30dates = allDates
-        last30tests = allTests
-
-    return sessions, lastBaseline, baselineList, lastFatigue, fatigueList, last30dates, last30tests
+    return sessions, lastBaseline, baselineList, baselineProtocolList, lastFatigue, fatigueList, fatigueProtocolList, allDates, allTests
 
 
 def getPlayerTzDict(sessions, lastBaseline):

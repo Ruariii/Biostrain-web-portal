@@ -192,32 +192,67 @@ function updateChartDataSession(filteredData, chart) {
     chart.update();
 }
 
-function updateChartDataHistorical(filteredData, chart, session_names) {
+function updateChartDataHistorical(filteredData, chart) {
     // Update the data for the LHTZ dataset
     chart.data.datasets[0].data = filteredData['LHTZ'];
     // Update the data for the RHTZ dataset
     chart.data.datasets[1].data = filteredData['RHTZ'];
 
+    chart.data.labels = filteredData['labels']
 
-    chart.data.labels = session_names
     // Update the chart
     chart.update();
 }
 
-// HISTORICAL FILTER FUNCTION
-function filterDataHistorical(data, metric, dataDict) {
-    // Extract the data for the chart
+function filterDataSquad(data, metric, dataDict) {
+    // Filter the data based on the selected metric
     var LHTZ_data = [];
     var RHTZ_data = [];
-    for (var session in dataDict) {
-      LHTZ_data.push(dataDict[session]['LHTZ'][data][metric][0]);
-      RHTZ_data.push(dataDict[session]['RHTZ'][data][metric][0]);
-    }
+    var labels = [];
+
+    const allKeys = Object.keys(dataDict);
+    allKeys.forEach(key => {
+      LHTZ_data.push(dataDict[key]['LHTZ'][data][metric][0]);
+      RHTZ_data.push(dataDict[key]['RHTZ'][data][metric][0]);
+      labels.push(key)
+    });
+
     var rows = Math.max(RHTZ_data.length, LHTZ_data.length);
 
     // Return the filtered data
-    return {'LHTZ': LHTZ_data, 'RHTZ': RHTZ_data, 'length': rows};
+    return {'LHTZ': LHTZ_data, 'RHTZ': RHTZ_data, 'length': rows, 'labels':labels};
 }
+
+function filterDataHistorical(protocol, data, metric, dataDict) {
+  // Extract the data for the chart
+  var LHTZ_data = [];
+  var RHTZ_data = [];
+  var labels = [];
+
+  if (protocol === 'All protocols') {
+    const allKeys = Object.keys(dataDict);
+    allKeys.forEach(key => {
+      LHTZ_data.push(dataDict[key]['LHTZ'][data][metric][0]);
+      RHTZ_data.push(dataDict[key]['RHTZ'][data][metric][0]);
+      labels.push(key)
+    });
+  } else {
+    const baselineKeys = Object.keys(dataDict).filter(key => key.includes(protocol+':'));
+    baselineKeys.forEach(key => {
+      LHTZ_data.push(dataDict[key]['LHTZ'][data][metric][0]);
+      RHTZ_data.push(dataDict[key]['RHTZ'][data][metric][0]);
+      labels.push(key)
+    });
+  }
+
+  var rows = Math.max(RHTZ_data.length, LHTZ_data.length);
+
+
+  // Return the filtered data
+  return {'LHTZ': LHTZ_data, 'RHTZ': RHTZ_data, 'length': rows, 'labels':labels};
+}
+
+
 
 
 function updateTableHistorical(filteredData4, table, session_names2) {
@@ -235,10 +270,10 @@ function updateTableHistorical(filteredData4, table, session_names2) {
     table.appendChild(headerRow);
 
     // Create the table rows
-    for (var i = 0; i < session_names2.length; i++) {
+    for (var i = 0; i < filteredData4['labels'].length; i++) {
         var row = document.createElement("tr");
         var testCell = document.createElement("td");
-        testCell.innerHTML = session_names2[i];
+        testCell.innerHTML = filteredData4['labels'][i];
         row.appendChild(testCell);
 
         var LHTZValue = filteredData4['LHTZ'][i];
