@@ -1,0 +1,895 @@
+<div class="content">
+  <div class="row">
+    <div class="col-md-3">
+      <h3>Progress Tracker</h3>
+    </div>
+  </div>
+  <div class="progress-tracker">
+    <div class="row" style="text-align:left;">
+
+      <div class="col-md-2">
+         <h5>Apply filters to data:</h5>
+        <br>
+      </div>
+      <div class="col-md-10">
+        <div class="row">
+          <div class="col-md-1">
+
+          </div>
+          <div class="col-md-3" style="text-align:center">
+            <label for="sessionSelectPF" style="text-align:left">Select Sessions:</label><br>
+            <select id="sessionSelectPF" multiple></select>
+        </div>
+        <div class="col-md-2">
+          <label for="timeframe-select">Select timeframe:</label><br>
+          <select id="timeframe-select" class="custom-dropdown">
+            <option value="all-time"> Best all-time</option>
+            <option value="last-sess"> Best last session </option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="leg-select">Select leg:</label><br>
+          <select id="leg-select" class="custom-dropdown">
+            <option value="combined"> Combined legs  </option>
+            <option value="front"> Front leg </option>
+            <option value="back"> Back leg </option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="config-select">Select config:</label><br>
+          <select id="config-select" class="custom-dropdown">
+            <option value="all-config"> All configs    </option>
+            {% for protocol in playerTags['Phase'] %}
+              <option value="baseline"> {{protocol}} </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="strategy-select">Select strategy:</label><br>
+          <select id="strategy-select" class="custom-dropdown">
+            <option value="all-strat"> All strategies </option>
+            {% for protocol in playerTags['Strategy'] %}
+              <option value="baseline"> {{protocol}} </option>
+            {% endfor %}
+          </select>
+        </div>
+        </div>
+        </div>
+      <br>
+      </div>
+      </div>
+    <br>
+    <div class="row">
+    <div class="col-md-12 rounded-border" id="pf-view">
+      <h4>Peak force</h4>
+      <div class="row" style="text-align:center">
+        <div class="col-md-4" style="text-align:center">
+          <br><br><br>
+          <table  class="table table-bordered border-dark" width="100%" style="text-align:center; font-size:0.8rem;">
+            <thead>
+              <tr>
+                <th>Max LHTZ (kg)</th>
+                <th>Max RHTZ (kg)</th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBodyPF">
+            </tbody>
+            <thead>
+            <tr>
+              <th colspan="2"> Right/Left Asymmetry (%)</th>
+            </tr>
+            </thead>
+            <tbody id="asymTableBodyPF"></tbody>
+            <thead>
+              <tr>
+                <th>Drop off from max LHTZ (%)</th>
+                <th>Drop off from max RHTZ (%)</th>
+              </tr>
+            </thead>
+            <tbody id="dropOffTableBodyPF">
+            </tbody>
+          </table>
+        </div>
+        <div class="col-md-8">
+          <div class="canvas-container">
+            <canvas id="peak-progress"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <br>
+    <div class="row">
+    <div class="col-md-12 rounded-border" id="f150-view">
+      <h5>Force at 150ms</h5>
+      <div class="row" style="text-align:center">
+        <div class="col-md-4" style="text-align:center">
+          <br><br><br>
+          <table  class="table table-bordered border-dark" width="100%" style="text-align:center; font-size:0.8rem;">
+            <thead>
+              <tr>
+                <th>Max LHTZ (kg)</th>
+                <th>Max RHTZ (kg)</th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBodyF150">
+            </tbody>
+            <thead>
+            <tr>
+              <th colspan="2"> Right/Left Asymmetry (%)</th>
+            </tr>
+            </thead>
+            <tbody id="asymTableBodyF150"></tbody>
+            <thead>
+              <tr>
+                <th>Drop off from max LHTZ (%)</th>
+                <th>Drop off from max RHTZ (%)</th>
+              </tr>
+            </thead>
+            <tbody id="dropOffTableBodyF150">
+            </tbody>
+          </table>
+        </div>
+        <div class="col-md-8">
+          <div class="canvas-container">
+            <canvas id="f150-progress"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <br>
+    <div class="row">
+    <div class="col-md-12 rounded-border" id="rfd-view">
+      <h5>RFD 50-150ms</h5>
+      <div class="row" style="text-align:center">
+        <div class="col-md-4" style="text-align:center">
+          <br><br><br>
+          <table  class="table table-bordered border-dark" width="100%" style="text-align:center; font-size:0.8rem;">
+            <thead>
+              <tr>
+                <th>Max LHTZ (kg)</th>
+                <th>Max RHTZ (kg)</th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBodyRFD">
+            </tbody>
+            <thead>
+            <tr>
+              <th colspan="2"> Right/Left Asymmetry (%)</th>
+            </tr>
+            </thead>
+            <tbody id="asymTableBodyRFD"></tbody>
+            <thead>
+              <tr>
+                <th>Drop off from max LHTZ (%)</th>
+                <th>Drop off from max RHTZ (%)</th>
+              </tr>
+            </thead>
+            <tbody id="dropOffTableBodyRFD">
+            </tbody>
+          </table>
+        </div>
+        <div class="col-md-8">
+          <div class="canvas-container">
+            <canvas id="rfd-progress"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+</div>
+
+<script>
+
+  var playerSessions = {{playerSessions|tojson|safe}}
+  var playerTags = {{playerTags|tojson|safe}}
+  var maxScores = getPlayerMaxScores(playerSessions)
+
+  // Get references to HTML elements
+  var sessionSelectPF = document.getElementById('sessionSelectPF');
+  var dataTableBodyPF = document.getElementById('dataTableBodyPF');
+  var legSelect = document.getElementById('leg-select');
+  var configSelect = document.getElementById('config-select');
+  var strategySelect = document.getElementById('strategy-select');
+  var timeframeSelect = document.getElementById('timeframe-select');
+
+  // Get the latest session
+  var sessions = Object.keys(playerSessions);
+  var latestSession = sessions[sessions.length - 1];
+
+</script>
+
+<script>
+// Create the chart
+var ctx = document.getElementById('peak-progress').getContext('2d');
+var peakProgress = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: [], // Initialize labels array
+    datasets: [
+      {
+        label: 'LHTZ',
+        data: [], // Initialize LHTZ data array
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ',
+        data: [], // Initialize RHTZ data array
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    plugins: {
+      tooltip: {
+        mode: 'index', // Display tooltip for the nearest point in the x-axis
+        intersect: false,
+     }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          text: 'Force (kg)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        title: {
+          text: 'Test number',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      }
+    }
+  }
+});
+
+// Populate the session select dropdown
+for (const session of sessions) {
+  var option = document.createElement('option');
+  option.value = session;
+  option.text = session;
+  sessionSelectPF.appendChild(option);
+}
+// Select all options in the dropdown
+for (var i = 0; i < sessionSelectPF.options.length; i++) {
+  sessionSelectPF.options[i].selected = true;
+}
+
+function updateChartAndTable() {
+  var selectedSessionsPF = Array.from(sessionSelectPF.selectedOptions).map(option => option.value);
+  console.log(selectedSessionsPF);
+  var selectedLeg = legSelect.options[legSelect.selectedIndex].text;
+  var selectedConfig = configSelect.options[configSelect.selectedIndex].text;
+  var selectedStrategy = strategySelect.options[strategySelect.selectedIndex].text;
+  var selectedTimeframe = timeframeSelect.options[timeframeSelect.selectedIndex].text;
+
+  let metric;
+  switch (selectedLeg) {
+    case 'Combined legs':
+      metric = 'Peak crush factor';
+      break;
+    case 'Front leg':
+      metric = 'Front leg peak force';
+      break;
+    case 'Back leg':
+      metric = 'Back leg peak force';
+      break;
+    default:
+      // Handle the default case if needed
+      break;
+  }
+
+  var filteredData = {};
+
+  for (var i = 0; i < selectedSessionsPF.length; i++) {
+    var session = selectedSessionsPF[i];
+    console.log('session name');
+    console.log(session);
+
+    filteredData[session] = { 'LHTZ': [], 'RHTZ': [] };
+
+    var dataLeft = playerSessions[session]['LHTZ']['session'][metric];
+    var dataRight = playerSessions[session]['RHTZ']['session'][metric];
+
+    for (let j = 0; j < dataLeft.length; j++) {
+      const phaseValL = String(playerSessions[session]['LHTZ']['session']['Phase'][j]);
+      if (phaseValL !== selectedConfig && selectedConfig !== 'All configs') {
+        dataLeft[j] = null;
+      }
+      var stratValL = String(playerSessions[session]['LHTZ']['session']['Strategy'][j]);
+      if (stratValL !== selectedStrategy && selectedStrategy !== 'All strategies') {
+        dataLeft[j] = null;
+      }
+      if (dataLeft[j] !== null) {
+        filteredData[session]['LHTZ'].push(dataLeft[j]);
+      }
+    }
+
+    for (let j = 0; j < dataRight.length; j++) {
+      var phaseValR = String(playerSessions[session]['RHTZ']['session']['Phase'][j]);
+      if (phaseValR !== selectedConfig && selectedConfig !== 'All configs') {
+        dataRight[j] = null;
+      }
+      var stratValR = String(playerSessions[session]['RHTZ']['session']['Strategy'][j]);
+      if (stratValR !== selectedStrategy && selectedStrategy !== 'All strategies') {
+        dataRight[j] = null;
+      }
+      if (dataRight[j] !== null) {
+        filteredData[session]['RHTZ'].push(dataRight[j]);
+      }
+    }
+  }
+
+  // Retrieve the data for the selected sessions
+  var combinedLhtzData = [];
+  var combinedRhtzData = [];
+  var combinedTests = [];
+
+  tooltipListPF = getProgressTooltipLists(playerSessions, selectedSessionsPF);
+  console.log(tooltipListPF);
+
+  peakProgress.options.plugins.tooltip.callbacks.footer = function (context) {
+        var index = context[0].dataIndex; // Get the index of the selected data point
+        var matchday = tooltipListPF['match'][index]; // Get the matchday from chartData
+        var config = tooltipListPF['phase'][index]; // Get the config from chartData
+        var strategy = tooltipListPF['strategy'][index]; // Get the strategy from chartData
+        var sessionName = tooltipListPF['session'][index]; // Get the strategy from chartData
+
+        // Display footer with additional data
+        return 'Session: '+sessionName+'\nMatchday: ' + matchday +'\nConfig: ' + config +'\nStrategy: ' + strategy;
+    };
+
+
+// Update the chart data and labels
+for (var x = 0; x < selectedSessionsPF.length; x++) {
+  var session = selectedSessionsPF[x];
+  var lhtzData = filteredData[session]['LHTZ'];
+  var rhtzData = filteredData[session]['RHTZ'];
+  var tests = playerSessions[session]['LHTZ']['session']['index'];
+
+  combinedLhtzData.push(...lhtzData);
+  combinedRhtzData.push(...rhtzData);
+  combinedTests.push(...tests);
+
+  }
+
+
+
+
+  // Update the chart data and labels
+  peakProgress.data.labels = combinedTests;
+  peakProgress.data.datasets[0].data = combinedLhtzData;
+  peakProgress.data.datasets[1].data = combinedRhtzData;
+
+
+
+  // Update the chart
+  peakProgress.update();
+
+  // Update the table
+  dataTableBodyPF.innerHTML = '';
+  var row = document.createElement('tr');
+  var lhtzCell = document.createElement('td');
+  var rhtzCell = document.createElement('td');
+
+  lhtzCell.textContent = Math.max(...combinedLhtzData).toFixed(1);
+  rhtzCell.textContent = Math.max(...combinedRhtzData).toFixed(1);
+
+  row.appendChild(lhtzCell);
+  row.appendChild(rhtzCell);
+  dataTableBodyPF.appendChild(row);
+
+  asymTableBodyPF.innerHTML = '';
+  var asymRow = document.createElement('tr');
+  var asymCell = document.createElement('td');
+
+  asymCell.textContent = ((Math.max(...combinedRhtzData) - Math.max(...combinedLhtzData)) / Math.max(...combinedRhtzData) * 100).toFixed(2);
+  asymCell.colSpan = 2;
+  asymRow.appendChild(asymCell);
+  asymTableBodyPF.appendChild(asymRow);
+
+  dropOffTableBodyPF.innerHTML = '';
+  var dropOffRow = document.createElement('tr');
+  var dropOffLhtzCell = document.createElement('td');
+  var dropOffRhtzCell = document.createElement('td');
+
+  var maxLHTZ = maxScores[selectedTimeframe][metric]['LHTZ'][0];
+  var maxRHTZ = maxScores[selectedTimeframe][metric]['RHTZ'][0];
+
+  dropOffLhtzCell.textContent = (((maxLHTZ-Math.max(...combinedLhtzData).toFixed(1))/maxLHTZ)*100).toFixed(2);
+  dropOffRhtzCell.textContent = (((maxRHTZ-Math.max(...combinedRhtzData).toFixed(1))/maxRHTZ)*100).toFixed(2);
+
+  dropOffRow.appendChild(dropOffLhtzCell);
+  dropOffRow.appendChild(dropOffRhtzCell);
+  dropOffTableBodyPF.appendChild(dropOffRow);
+}
+
+
+
+
+// Add event listener to session select dropdown
+sessionSelectPF.addEventListener('change', updateChartAndTable);
+legSelect.addEventListener('change', updateChartAndTable);
+configSelect.addEventListener('change', updateChartAndTable);
+strategySelect.addEventListener('change', updateChartAndTable);
+
+// Initial chart and table update
+updateChartAndTable();
+
+</script>
+
+<script>
+// Create the chart
+var ctx = document.getElementById('f150-progress').getContext('2d');
+var f150Progress = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: [], // Initialize labels array
+    datasets: [
+      {
+        label: 'LHTZ',
+        data: [], // Initialize LHTZ data array
+        backgroundColor: 'rgba(0, 128, 0, 0.2)',
+        borderColor: 'rgba(0, 128, 0, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ',
+        data: [], // Initialize RHTZ data array
+        backgroundColor: 'rgba(128, 0, 128, 0.2)',
+        borderColor: 'rgba(128, 0, 128, 1)',
+        borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    plugins: {
+      tooltip: {
+        mode: 'index', // Display tooltip for the nearest point in the x-axis
+        intersect: false,
+     }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          text: 'Force (kg)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        title: {
+          text: 'Test number',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      }
+    }
+  }
+});
+
+
+
+function updateChartAndTableF150() {
+  var selectedSessionsPF = Array.from(sessionSelectPF.selectedOptions).map(option => option.value);
+  console.log(selectedSessionsPF);
+  var selectedLeg = legSelect.options[legSelect.selectedIndex].text;
+  var selectedConfig = configSelect.options[configSelect.selectedIndex].text;
+  var selectedStrategy = strategySelect.options[strategySelect.selectedIndex].text;
+  var selectedTimeframe = timeframeSelect.options[timeframeSelect.selectedIndex].text;
+
+  let metric;
+  switch (selectedLeg) {
+    case 'Combined legs':
+      metric = 'Crush factor at 150ms';
+      break;
+    case 'Front leg':
+      metric = 'Front leg force at 150ms';
+      break;
+    case 'Back leg':
+      metric = 'Back leg force at 150ms';
+      break;
+    default:
+      // Handle the default case if needed
+      break;
+  }
+
+  var filteredData = {};
+
+  for (var i = 0; i < selectedSessionsPF.length; i++) {
+    var session = selectedSessionsPF[i];
+    console.log('session name');
+    console.log(session);
+
+    filteredData[session] = { 'LHTZ': [], 'RHTZ': [] };
+
+    var dataLeft = playerSessions[session]['LHTZ']['session'][metric];
+    var dataRight = playerSessions[session]['RHTZ']['session'][metric];
+
+    for (let j = 0; j < dataLeft.length; j++) {
+      const phaseValL = String(playerSessions[session]['LHTZ']['session']['Phase'][j]);
+      if (phaseValL !== selectedConfig && selectedConfig !== 'All configs') {
+        dataLeft[j] = null;
+      }
+      var stratValL = String(playerSessions[session]['LHTZ']['session']['Strategy'][j]);
+      if (stratValL !== selectedStrategy && selectedStrategy !== 'All strategies') {
+        dataLeft[j] = null;
+      }
+      if (dataLeft[j] !== null) {
+        filteredData[session]['LHTZ'].push(dataLeft[j]);
+      }
+    }
+
+    for (let j = 0; j < dataRight.length; j++) {
+      var phaseValR = String(playerSessions[session]['RHTZ']['session']['Phase'][j]);
+      if (phaseValR !== selectedConfig && selectedConfig !== 'All configs') {
+        dataRight[j] = null;
+      }
+      var stratValR = String(playerSessions[session]['RHTZ']['session']['Strategy'][j]);
+      if (stratValR !== selectedStrategy && selectedStrategy !== 'All strategies') {
+        dataRight[j] = null;
+      }
+      if (dataRight[j] !== null) {
+        filteredData[session]['RHTZ'].push(dataRight[j]);
+      }
+    }
+  }
+
+  // Retrieve the data for the selected sessions
+  var combinedLhtzData = [];
+  var combinedRhtzData = [];
+  var combinedTests = [];
+
+  tooltipListPF = getProgressTooltipLists(playerSessions, selectedSessionsPF);
+  console.log(tooltipListPF);
+
+  f150Progress.options.plugins.tooltip.callbacks.footer = function (context) {
+        var index = context[0].dataIndex; // Get the index of the selected data point
+        var matchday = tooltipListPF['match'][index]; // Get the matchday from chartData
+        var config = tooltipListPF['phase'][index]; // Get the config from chartData
+        var strategy = tooltipListPF['strategy'][index]; // Get the strategy from chartData
+        var sessionName = tooltipListPF['session'][index]; // Get the strategy from chartData
+
+        // Display footer with additional data
+        return 'Session: '+sessionName+'\nMatchday: ' + matchday +'\nConfig: ' + config +'\nStrategy: ' + strategy;
+    };
+
+
+// Update the chart data and labels
+for (var x = 0; x < selectedSessionsPF.length; x++) {
+  var session = selectedSessionsPF[x];
+  var lhtzData = filteredData[session]['LHTZ'];
+  var rhtzData = filteredData[session]['RHTZ'];
+  var tests = playerSessions[session]['LHTZ']['session']['index'];
+
+  combinedLhtzData.push(...lhtzData);
+  combinedRhtzData.push(...rhtzData);
+  combinedTests.push(...tests);
+
+  }
+
+
+
+
+  // Update the chart data and labels
+  f150Progress.data.labels = combinedTests;
+  f150Progress.data.datasets[0].data = combinedLhtzData;
+  f150Progress.data.datasets[1].data = combinedRhtzData;
+
+
+
+  // Update the chart
+  f150Progress.update();
+
+  // Update the table
+  dataTableBodyF150.innerHTML = '';
+  var row = document.createElement('tr');
+  var lhtzCell = document.createElement('td');
+  var rhtzCell = document.createElement('td');
+
+  lhtzCell.textContent = Math.max(...combinedLhtzData).toFixed(1);
+  rhtzCell.textContent = Math.max(...combinedRhtzData).toFixed(1);
+
+  row.appendChild(lhtzCell);
+  row.appendChild(rhtzCell);
+  dataTableBodyF150.appendChild(row);
+
+  asymTableBodyF150.innerHTML = '';
+  var asymRow = document.createElement('tr');
+  var asymCell = document.createElement('td');
+
+  asymCell.textContent = ((Math.max(...combinedRhtzData) - Math.max(...combinedLhtzData)) / Math.max(...combinedRhtzData) * 100).toFixed(2);
+  asymCell.colSpan = 2;
+  asymRow.appendChild(asymCell);
+  asymTableBodyF150.appendChild(asymRow);
+
+  dropOffTableBodyF150.innerHTML = '';
+  var dropOffRow = document.createElement('tr');
+  var dropOffLhtzCell = document.createElement('td');
+  var dropOffRhtzCell = document.createElement('td');
+
+  var maxLHTZ = maxScores[selectedTimeframe][metric]['LHTZ'][0];
+  var maxRHTZ = maxScores[selectedTimeframe][metric]['RHTZ'][0];
+
+  dropOffLhtzCell.textContent = (((maxLHTZ-Math.max(...combinedLhtzData).toFixed(1))/maxLHTZ)*100).toFixed(2);
+  dropOffRhtzCell.textContent = (((maxRHTZ-Math.max(...combinedRhtzData).toFixed(1))/maxRHTZ)*100).toFixed(2);
+
+  dropOffRow.appendChild(dropOffLhtzCell);
+  dropOffRow.appendChild(dropOffRhtzCell);
+  dropOffTableBodyF150.appendChild(dropOffRow);
+}
+
+
+
+
+// Add event listener to session select dropdown
+sessionSelectPF.addEventListener('change', updateChartAndTableF150);
+legSelect.addEventListener('change', updateChartAndTableF150);
+configSelect.addEventListener('change', updateChartAndTableF150);
+strategySelect.addEventListener('change', updateChartAndTableF150);
+
+// Initial chart and table update
+updateChartAndTableF150();
+
+</script>
+
+<script>
+// Create the chart
+var ctx = document.getElementById('rfd-progress').getContext('2d');
+var rfdProgress = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: [], // Initialize labels array
+    datasets: [
+      {
+        label: 'LHTZ',
+        data: [], // Initialize LHTZ data array
+        backgroundColor: 'rgba(255, 165, 0, 0.3)',
+        borderColor: 'rgba(255, 165, 0, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ',
+        data: [], // Initialize RHTZ data array
+        backgroundColor: 'rgba(0, 0, 139, 0.2)',
+        borderColor: 'rgba(0, 0, 139, 1)',
+        borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    plugins: {
+      tooltip: {
+        mode: 'index', // Display tooltip for the nearest point in the x-axis
+        intersect: false,
+     }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          text: 'Rate of force development (kg/s)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        title: {
+          text: 'Test number',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      }
+    }
+  }
+});
+
+
+
+function updateChartAndTableRFD() {
+  var selectedSessionsPF = Array.from(sessionSelectPF.selectedOptions).map(option => option.value);
+  console.log(selectedSessionsPF);
+  var selectedLeg = legSelect.options[legSelect.selectedIndex].text;
+  var selectedConfig = configSelect.options[configSelect.selectedIndex].text;
+  var selectedStrategy = strategySelect.options[strategySelect.selectedIndex].text;
+  var selectedTimeframe = timeframeSelect.options[timeframeSelect.selectedIndex].text;
+
+  let metric;
+  switch (selectedLeg) {
+    case 'Combined legs':
+      metric = 'Combined RFD 50-150ms';
+      break;
+    case 'Front leg':
+      metric = 'Front leg RFD 50-150ms';
+      break;
+    case 'Back leg':
+      metric = 'Back leg RFD 50-150ms';
+      break;
+    default:
+      // Handle the default case if needed
+      break;
+  }
+
+  var filteredData = {};
+
+  for (var i = 0; i < selectedSessionsPF.length; i++) {
+    var session = selectedSessionsPF[i];
+    console.log('session name');
+    console.log(session);
+
+    filteredData[session] = { 'LHTZ': [], 'RHTZ': [] };
+
+    var dataLeft = playerSessions[session]['LHTZ']['session'][metric];
+    var dataRight = playerSessions[session]['RHTZ']['session'][metric];
+
+    for (let j = 0; j < dataLeft.length; j++) {
+      const phaseValL = String(playerSessions[session]['LHTZ']['session']['Phase'][j]);
+      if (phaseValL !== selectedConfig && selectedConfig !== 'All configs') {
+        dataLeft[j] = null;
+      }
+      var stratValL = String(playerSessions[session]['LHTZ']['session']['Strategy'][j]);
+      if (stratValL !== selectedStrategy && selectedStrategy !== 'All strategies') {
+        dataLeft[j] = null;
+      }
+      if (dataLeft[j] !== null) {
+        filteredData[session]['LHTZ'].push(dataLeft[j]);
+      }
+    }
+
+    for (let j = 0; j < dataRight.length; j++) {
+      var phaseValR = String(playerSessions[session]['RHTZ']['session']['Phase'][j]);
+      if (phaseValR !== selectedConfig && selectedConfig !== 'All configs') {
+        dataRight[j] = null;
+      }
+      var stratValR = String(playerSessions[session]['RHTZ']['session']['Strategy'][j]);
+      if (stratValR !== selectedStrategy && selectedStrategy !== 'All strategies') {
+        dataRight[j] = null;
+      }
+      if (dataRight[j] !== null) {
+        filteredData[session]['RHTZ'].push(dataRight[j]);
+      }
+    }
+  }
+
+  // Retrieve the data for the selected sessions
+  var combinedLhtzData = [];
+  var combinedRhtzData = [];
+  var combinedTests = [];
+
+  tooltipListPF = getProgressTooltipLists(playerSessions, selectedSessionsPF);
+  console.log(tooltipListPF);
+
+  rfdProgress.options.plugins.tooltip.callbacks.footer = function (context) {
+        var index = context[0].dataIndex; // Get the index of the selected data point
+        var matchday = tooltipListPF['match'][index]; // Get the matchday from chartData
+        var config = tooltipListPF['phase'][index]; // Get the config from chartData
+        var strategy = tooltipListPF['strategy'][index]; // Get the strategy from chartData
+        var sessionName = tooltipListPF['session'][index]; // Get the strategy from chartData
+
+        // Display footer with additional data
+        return 'Session: '+sessionName+'\nMatchday: ' + matchday +'\nConfig: ' + config +'\nStrategy: ' + strategy;
+    };
+
+
+// Update the chart data and labels
+for (var x = 0; x < selectedSessionsPF.length; x++) {
+  var session = selectedSessionsPF[x];
+  var lhtzData = filteredData[session]['LHTZ'];
+  var rhtzData = filteredData[session]['RHTZ'];
+  var tests = playerSessions[session]['LHTZ']['session']['index'];
+
+  combinedLhtzData.push(...lhtzData);
+  combinedRhtzData.push(...rhtzData);
+  combinedTests.push(...tests);
+
+  }
+
+
+
+
+  // Update the chart data and labels
+  rfdProgress.data.labels = combinedTests;
+  rfdProgress.data.datasets[0].data = combinedLhtzData;
+  rfdProgress.data.datasets[1].data = combinedRhtzData;
+
+
+
+  // Update the chart
+  rfdProgress.update();
+
+  // Update the table
+  dataTableBodyRFD.innerHTML = '';
+  var row = document.createElement('tr');
+  var lhtzCell = document.createElement('td');
+  var rhtzCell = document.createElement('td');
+
+  lhtzCell.textContent = Math.max(...combinedLhtzData).toFixed(1);
+  rhtzCell.textContent = Math.max(...combinedRhtzData).toFixed(1);
+
+  row.appendChild(lhtzCell);
+  row.appendChild(rhtzCell);
+  dataTableBodyRFD.appendChild(row);
+
+  asymTableBodyRFD.innerHTML = '';
+  var asymRow = document.createElement('tr');
+  var asymCell = document.createElement('td');
+
+  asymCell.textContent = ((Math.max(...combinedRhtzData) - Math.max(...combinedLhtzData)) / Math.max(...combinedRhtzData) * 100).toFixed(2);
+  asymCell.colSpan = 2;
+  asymRow.appendChild(asymCell);
+  asymTableBodyRFD.appendChild(asymRow);
+
+  dropOffTableBodyRFD.innerHTML = '';
+  var dropOffRow = document.createElement('tr');
+  var dropOffLhtzCell = document.createElement('td');
+  var dropOffRhtzCell = document.createElement('td');
+
+  var maxLHTZ = maxScores[selectedTimeframe][metric]['LHTZ'][0];
+  var maxRHTZ = maxScores[selectedTimeframe][metric]['RHTZ'][0];
+
+  dropOffLhtzCell.textContent = (((maxLHTZ-Math.max(...combinedLhtzData).toFixed(1))/maxLHTZ)*100).toFixed(2);
+  dropOffRhtzCell.textContent = (((maxRHTZ-Math.max(...combinedRhtzData).toFixed(1))/maxRHTZ)*100).toFixed(2);
+
+  dropOffRow.appendChild(dropOffLhtzCell);
+  dropOffRow.appendChild(dropOffRhtzCell);
+  dropOffTableBodyRFD.appendChild(dropOffRow);
+}
+
+
+
+
+// Add event listener to session select dropdown
+sessionSelectPF.addEventListener('change', updateChartAndTableRFD);
+legSelect.addEventListener('change', updateChartAndTableRFD);
+configSelect.addEventListener('change', updateChartAndTableRFD);
+strategySelect.addEventListener('change', updateChartAndTableRFD);
+
+// Initial chart and table update
+updateChartAndTableRFD();
+
+</script>

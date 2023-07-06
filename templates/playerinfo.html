@@ -1,0 +1,730 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.2.0"></script>
+
+<script src="/static/js/graphingFunctions.js"></script>
+<div class="content">
+  <div class="player-info">
+      <h3> Player information </h3>
+    <div class="row">
+          <div class="col-md-3 rounded-border">
+            <div class="tile">
+                <br>
+              <h5>Name</h5>
+              <p>{{name|safe}}</p>
+            </div>
+          </div>
+          <div class="col-md-3 rounded-border">
+            <div class="tile">
+                <br>
+              <h5>Squad</h5>
+              <p>{{org|safe}}</p>
+            </div>
+          </div>
+          <div class="col-md-3 rounded-border">
+            <div class="tile">
+                <br>
+              <h5>Sessions Completed</h5>
+              <p>{{sessionList|length}}</p>
+            </div>
+          </div>
+          <div class="col-md-3 rounded-border">
+            <div class="tile">
+                <br>
+              <h5>Last session date</h5>
+              <p>{{dates[dates|length-1]}}</p>
+            </div>
+          </div>
+          </div>
+    <div class="player-overview">
+        <div class="row">
+            <div class="col-md-4">
+            <br>
+                <h3>Performance Overview</h3>
+            </div>
+        </div>
+        <div class="row">
+        <div class="col-md-12 rounded-border" style="justify-content:center align-items:center">
+            <canvas id="activityChart" style="max-height:92%; max-width:100%"></canvas>
+            <br>
+        </div>
+      </div>
+        <br>
+            <div class="row">
+                <div class="col-md-6 mx-auto rounded-border">
+                    <div class="row">
+                        <div class="col-md-5" style="text-align:center">
+                            <h4> Score progression </h4>
+                        </div>
+                        <div class="col-md-5" style="text-align:left">
+                            <div class="info-icon">
+                              <span class="info-icon__symbol">i</span>
+                                  <div class="info-icon__content" style="width:50%">
+                                    <p>Use this plot to track your progress in the key metrics across sessions.</p>
+                                  </div>
+                            </div>
+                        </div>
+                    </div>
+                    <canvas id="progressChart"></canvas>
+                    <br>
+                    <div class="row">
+                        <div class="col-md-6" style="text-align:center">
+                            <h4> Asymmetry progression </h4>
+                        </div>
+                        <div class="col-md-5" style="text-align:left">
+                            <div class="info-icon">
+                              <span class="info-icon__symbol">i</span>
+                                  <div class="info-icon__content" style="width:50%">
+                                    <p>Use this plot to monitor asymmetry across sessions.</p>
+                                  </div>
+                            </div>
+                        </div>
+                    </div>
+                    <canvas id="asymProgressChart"></canvas>
+                </div>
+
+
+                <div class="col-md-6 mx-auto rounded-border">
+                    <div class="row">
+                        <div class="col-md-7" style="text-align:right">
+                            <h4> Player radar plot </h4>
+                        </div>
+                        <div class="col-md-5" style="text-align:left">
+                            <div class="info-icon">
+                              <span class="info-icon__symbol">i</span>
+                                  <div class="info-icon__content" style="width:50%">
+                                    <p>Use this plot to observe your performance in the key metrics.</p>
+                                  </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <canvas id="radarChart"></canvas>
+                </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+    // Event listeners for the buttons
+    var last5TestsButton = document.getElementById("last-5-session);
+    var seasonBestButton = document.getElementById("all-session");
+
+    last5TestsButton.addEventListener('click', function() {
+    updateOverviewButtonColor(this);
+    });
+
+
+
+    seasonBestButton.addEventListener('click', function() {
+    updateOverviewButtonColor(this);
+    });
+</script>
+<script>
+    window.addEventListener('load', function() {
+  var last5TestsButton = document.getElementById("last-5-session");
+  last5TestsButton.dispatchEvent(new Event('click'));
+});
+
+</script>
+
+<script>
+    // Get the data from the LHTZ_data and RHTZ_data dictionaries
+    var data = {{ playerSessions|tojson|safe }}
+
+    var sessionList = {{ sessionList|safe }}
+    var radarData = getRadarData(data)
+
+    var extendedActivityData = extendDatesAndNumTests({{dates|safe}}, {{numTests|safe}})
+    var extendedDates = extendedActivityData.dates
+    var extendedNumTests = extendedActivityData.numTests
+
+    var progressData = getProgressData(data)
+
+</script>
+
+<script>
+// Extract the data for the chart
+var maxPfScores = getScoresFromSessions(data, 'peak force', 'max')
+
+var LHTZ_FLchartData = maxPfScores[0];
+var LHTZ_BLchartData = maxPfScores[2];
+var RHTZ_FLchartData = maxPfScores[1];
+var RHTZ_BLchartData = maxPfScores[3];
+
+// Get the labels for the chart
+var labels = maxPfScores[4];
+
+// Create a new chart
+var ctx = document.getElementById("combined-peak-max").getContext("2d");
+var combinedPeak = new Chart(ctx, {
+  type: "bar",
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: 'LHTZ FL',
+        data: LHTZ_FLchartData,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.6)'
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)'
+        ],
+        yAxisID: 'y',
+        borderWidth: 1
+      },
+      {
+        label: 'LHTZ BL',
+        data: LHTZ_BLchartData,
+        backgroundColor: [
+         'rgba(255, 99, 132, 0.2)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(255, 99, 132, 1)'
+
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ FL',
+        data: RHTZ_FLchartData,
+        backgroundColor: [
+          'rgba(100, 149, 237, 0.8)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(100, 149, 237, 1)'
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ BL',
+        data: RHTZ_BLchartData,
+        backgroundColor: [
+          'rgba(100, 149, 237, 0.2)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(100, 149, 237, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    plugins: {
+        tooltip: {
+            mode: 'index', // Display tooltip for the nearest point in the x-axis
+            intersect: false,
+         },
+        legend: {
+            display: false
+        }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        stacked: true,
+        title: {
+          text: 'Peak force (kg)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        stacked: true,
+        title: {
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      }
+    }
+  }
+});
+chart.render();
+</script>
+<script>
+// Extract the data for the chart
+var maxF150Scores = getScoresFromSessions(data, 'force at 150ms', 'max')
+
+var LHTZ_FLchartData = maxF150Scores[0];
+var LHTZ_BLchartData = maxF150Scores[2];
+var RHTZ_FLchartData = maxF150Scores[1];
+var RHTZ_BLchartData = maxF150Scores[3];
+
+// Get the labels for the chart
+var labels = maxF150Scores[4];
+
+// Create a new chart
+var ctx = document.getElementById("combined-f150-max").getContext("2d");
+var combinedF150 = new Chart(ctx, {
+  type: "bar",
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: 'LHTZ FL',
+        data: LHTZ_FLchartData,
+        backgroundColor: [
+          'rgba(255, 199, 132, 0.6)'
+        ],
+        borderColor: [
+          'rgba(255, 199, 132, 1)'
+        ],
+        yAxisID: 'y',
+        borderWidth: 1
+      },
+      {
+        label: 'LHTZ BL',
+        data: LHTZ_BLchartData,
+        backgroundColor: [
+         'rgba(255, 199, 132, 0.2)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(255, 199, 132, 1)'
+
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ FL',
+        data: RHTZ_FLchartData,
+        backgroundColor: [
+          'rgba(50, 149, 137, 0.8)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(50, 149, 137, 1)'
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ BL',
+        data: RHTZ_BLchartData,
+        backgroundColor: [
+          'rgba(50, 149, 137, 0.2)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(50, 149, 137, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    plugins: {
+        tooltip: {
+            mode: 'index', // Display tooltip for the nearest point in the x-axis
+            intersect: false,
+         },
+        legend: {
+            display: false
+        }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        stacked: true,
+        title: {
+          text: 'Peak force (kg)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        stacked: true,
+        title: {
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      }
+    }
+  }
+});
+chart.render();
+</script>
+<script>
+// Extract the data for the chart
+var maxRfdScores = getScoresFromSessions(data, 'RFD 50-150ms', 'max')
+
+var LHTZ_FLchartData = maxRfdScores[0];
+var LHTZ_BLchartData = maxRfdScores[2];
+var RHTZ_FLchartData = maxRfdScores[1];
+var RHTZ_BLchartData = maxRfdScores[3];
+
+// Get the labels for the chart
+var labels = maxRfdScores[4];
+
+// Create a new chart
+var ctx = document.getElementById("combined-rfd-max").getContext("2d");
+var combinedRFD = new Chart(ctx, {
+  type: "bar",
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: 'LHTZ FL',
+        data: LHTZ_FLchartData,
+        backgroundColor: [
+          'rgba(55, 99, 132, 0.6)'
+        ],
+        borderColor: [
+          'rgba(55, 99, 132, 1)'
+        ],
+        yAxisID: 'y',
+        borderWidth: 1
+      },
+      {
+        label: 'LHTZ BL',
+        data: LHTZ_BLchartData,
+        backgroundColor: [
+         'rgba(55, 99, 132, 0.2)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(55, 99, 132, 1)'
+
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ FL',
+        data: RHTZ_FLchartData,
+        backgroundColor: [
+          'rgba(99, 49, 207, 0.8)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(99, 49, 207, 1)'
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ BL',
+        data: RHTZ_BLchartData,
+        backgroundColor: [
+          'rgba(99, 49, 207, 0.2)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(99, 49, 207, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    plugins: {
+        tooltip: {
+            mode: 'index', // Display tooltip for the nearest point in the x-axis
+            intersect: false,
+         },
+        legend: {
+            display: false
+        }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        stacked: true,
+        title: {
+          text: 'Peak force (kg)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        stacked: true,
+        title: {
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      }
+    }
+  }
+});
+chart.render();
+</script>
+
+<script>
+  var data = {
+    labels: extendedDates,
+    datasets: [{
+      label: 'Tests completed',
+      data: extendedNumTests,
+      fill: true,
+      borderColor: 'rgb(100, 75, 185)',
+      tension: 0.25
+    }]
+  }
+
+  new Chart(document.getElementById("activityChart"), {
+      type: "line",
+      data: data,
+      options: {
+        scales: {
+            y:{
+              min:0,
+              max: 25,
+              title:{
+                color: 'black',
+                text: 'Number of completed tests',
+                display: true
+              },
+              ticks: {
+                    color: 'black',
+              }
+            },
+            x:{
+                ticks: {
+                    color: 'black',
+                    stepSize: 50,
+                    maxTicksLimit: 10
+              }
+            }
+          }
+        }
+    });
+</script>
+
+<script>
+  var data = {
+    labels: progressData['labels'],
+    datasets: [{
+      label: 'Peak force',
+      yAxisID: 'y',
+      data: progressData['Peak force'],
+      borderColor: 'rgba(75, 192, 192, 1)',
+      tension: 0.25
+    },
+    {
+      label: 'Force at 150ms',
+      yAxisID: 'y',
+      data: progressData['Force at 150ms'],
+      borderColor: 'rgba(255, 99, 132, 1)',
+      tension: 0.25
+    },
+    {
+      label: 'RFD 50-150ms',
+      yAxisID: 'y1',
+      data: progressData['RFD 50-150ms'],
+      borderColor: 'rgb(100, 75, 185)',
+      tension: 0.25
+    }]
+  }
+
+  var progressChart = new Chart(document.getElementById("progressChart"), {
+      type: "line",
+      data: data,
+      options: {
+        plugins: {
+          tooltip: {
+            mode: 'index', // Display tooltip for the nearest point in the x-axis
+            intersect: false,
+         }
+        },
+        scales: {
+            y:{
+              min:0,
+              title:{
+                color: 'black',
+                text: 'Force (kg)',
+                display: true
+              },
+              ticks: {
+                    color: 'black',
+              }
+            },
+            y1:{
+              position: 'right',
+              min:0,
+              title:{
+                color: 'black',
+                text: 'Rate of force development (kg/s)',
+                display: true
+              },
+              ticks: {
+                    color: 'black',
+              }
+            },
+            x:{
+                ticks: {
+                    color: 'black',
+                    stepSize: 50,
+                    maxTicksLimit: 10
+              }
+            }
+          }
+        }
+    });
+    updateChartLegendProgress(progressData, progressChart)
+</script>
+<script>
+  var data = {
+    labels: progressData['labels'],
+    datasets: [{
+      label: 'Peak force',
+      yAxisID: 'y',
+      data: progressData['Peak force asymmetry'],
+      borderColor: 'rgba(75, 192, 192, 1)',
+      borderDash: [5, 5],
+      tension: 0.25
+    },
+    {
+      label: 'Force at 150ms',
+      yAxisID: 'y',
+      data: progressData['Force at 150ms asymmetry'],
+      borderColor: 'rgba(255, 99, 132, 1)',
+      borderDash: [5, 5],
+      tension: 0.25
+    },
+    {
+      label: 'RFD 50-150ms',
+      yAxisID: 'y',
+      data: progressData['RFD 50-150ms asymmetry'],
+      borderColor: 'rgb(100, 75, 185)',
+      borderDash: [5, 5],
+      tension: 0.25
+    }]
+  }
+
+  var progressAsymChart = new Chart(document.getElementById("asymProgressChart"), {
+      type: "line",
+      data: data,
+      options: {
+        plugins: {
+          tooltip: {
+            mode: 'index', // Display tooltip for the nearest point in the x-axis
+            intersect: false,
+         }
+        },
+        scales: {
+            y:{
+              min:-100,
+              max:100,
+              title:{
+                color: 'black',
+                text: 'Asymmetry (%)',
+                display: true
+              },
+              ticks: {
+                    color: 'black',
+              }
+            },
+            x:{
+                ticks: {
+                    color: 'black',
+                    stepSize: 50,
+                    maxTicksLimit: 10
+              }
+            }
+          }
+        }
+    });
+    updateChartLegendProgress(progressData, progressAsymChart)
+</script>
+
+<script>
+// Get canvas element
+var radarChartCanvas = document.getElementById('radarChart');
+
+// Create the radar chart
+var radarChart = new Chart(radarChartCanvas, {
+  type: 'radar',
+  data: {
+    labels: Object.keys(radarData['last-session']),
+    datasets: [{
+      label: 'Last session',
+      data: Object.values(radarData['last-session']),
+      fill: true,
+      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      borderColor: 'rgba(75, 192, 192, 1)',
+      pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+      pointBorderColor: '#fff',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(75, 192, 192, 1)'
+    },
+    {
+      label: 'PB',
+      data: Object.values(radarData['PB']),
+      fill: true,
+      backgroundColor: 'rgba(255, 99, 132, 0.2)',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+      pointBorderColor: '#fff',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(255, 99, 132, 1)'
+    }]
+  },
+  options: {
+    color:'black',
+    scale: {
+    pointLabels: {
+            fontColor: 'black',
+        },
+      r: {
+        beginAtZero: true,
+        min: 0,
+        max: 100,
+        ticks:{
+            color: 'black'
+        }
+      }
+    },
+    plugins:{
+        legend:{
+        position: 'chartArea',
+        align: 'start',
+    }
+    }
+  }
+});
+
+
+
+</script>
+
+
+</div>
+
+

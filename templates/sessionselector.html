@@ -1,0 +1,398 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.2.0"></script>
+
+<script src="/static/js/graphingFunctions.js"></script>
+
+
+<div class="content">
+  <h3>Session Selector</h3>
+  <div class="session-selector">
+    <div class="container-flex">
+    <h5 class="card-title">Graphical view:</h5>
+        <label for="baseline-select">Select a session from the list of your saved data:</label>
+        <select id="baseline-select">
+          {% for session in sessionList %}
+          <option> {{ session }} </option>
+          {% endfor %}
+        </select>
+        <br><br>
+
+        <div class="row">
+          <div class="col-md-6 rounded-border" style="text-align:center;">
+            <p style="text-align:center"> <strong> Transition zone comparison: </strong></p>
+            <!-- First dropdown for selecting the metric -->
+            <label for="metric-select">Select Metric:</label>
+            <select id="metric-select">
+              <option value="peak-crush-factor">Peak crush factor</option>
+              <option value="front-leg-peak-force">Front leg peak force</option>
+              <option value="back-leg-peak-force">Back leg peak force</option>
+              <option value="crush-factor-150ms">Crush factor at 150ms</option>
+              <option value="front-leg-force-150ms">Front leg force at 150ms</option>
+              <option value="back-leg-force-150ms">Back leg force at 150ms</option>
+              <option value="combined-rfd">Combined RFD 50-150ms</option>
+              <option value="back-leg-rfd">Back leg RFD 50-150ms</option>
+              <option value="front-leg-rfd">Front leg RFD 50-150ms</option>
+            </select>
+            <br><br>
+            <canvas id="myChart" width="70%" height="40%"></canvas>
+            <br>
+            <table id="last-baseline-table" class="table table-bordered border-dark" width="100%" style="text-align:center; font-size:0.75rem;"></table>
+          </div>
+          <div class="col-md-6 rounded-border">
+            <p style="text-align:center"> <strong> Combined transition zones: </strong></p>
+            <div class="row">
+              <div class="col-md-6" style="text-align:center;">
+                <label for="asym-select">Select asymmetry:</label>
+                <select id="asym-select">
+                  <option value="crush-factor-asym">Transition zone</option>
+                  <option value="front-leg-asym">Front leg</option>
+                  <option value="back-leg-asym">Back leg</option>
+                </select>
+              </div>
+              <div class="col-md-6" style="text-align:center;">
+                <label for="cc-metric-select">Select metric:</label>
+                <select id="cc-metric-select">
+                  <option value="peak-force">Peak force</option>
+                  <option value="force-150">Force at 150ms</option>
+                  <option value="rfd">RFD 50-150ms</option>
+                </select>
+              </div>
+            </div>
+            <br>
+            <canvas id="lb-combined-crush" width="70%" height="40%"></canvas>
+            <br>
+            <table id="last-baseline-cc-table" class="table table-bordered border-dark" width="100%" style="text-align:center; font-size:0.75rem;"></table>
+            <br>
+          </div>
+        </div>
+      </div>
+    <br>
+    <div class="container-flex">
+    <div class="row">
+    <div class="col-md-6">
+      <h5 class="card-title">Tabular view:</h5>
+      <label for="tabular-session-select">Select a session from the list of your saved data:</label>
+      <select id="tabular-session-select" name="tabular-session-select">
+        <option value="all-sessions">All sessions</option>
+        {% for session in sessionList %}
+          <option value="{{ session }}">{{ session }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <br>
+
+  <script>
+  // Function to handle the dropdown selection
+  function handleDropdownSelection() {
+    var selectedValue = document.getElementById("tabular-session-select").value;
+    var sessions = document.getElementsByClassName("session");
+
+    // Hide all sessions
+    for (var i = 0; i < sessions.length; i++) {
+      sessions[i].style.display = "none";
+    }
+
+    // Show selected session or all sessions
+    if (selectedValue === "all-sessions") {
+      for (var i = 0; i < sessions.length; i++) {
+        sessions[i].style.display = "block";
+      }
+    } else {
+      var selectedSession = document.getElementById(selectedValue);
+      if (selectedSession) {
+        selectedSession.style.display = "block";
+      }
+    }
+  }
+
+  // Add event listener to the dropdown select
+  document.getElementById("tabular-session-select").addEventListener("change", handleDropdownSelection);
+
+  // Initial execution of the function to display the selected sessions
+  handleDropdownSelection();
+</script>
+  {% for i in range(tableList|length) %}
+    <div class="session" id="{{ sessionList[i] }}">
+      <h6>{{ sessionList[i] }}</h6>
+      <div class="table-container">{{ tableList[i]|safe }}</div>
+      <hr>
+    </div>
+  {% endfor %}
+    </div>
+
+
+  </div>
+
+
+</div>
+
+<script>
+    // Get the data from the LHTZ_data and RHTZ_data dictionaries
+    var playerSessions = {{ playerSessions|tojson|safe }}
+    var sessionList = {{ sessionList|safe }}
+    var lastSession = sessionList.slice(-1)
+
+    var maxPfScores = getScoresFromSessions(playerSessions, 'peak force', 'max')
+    var maxF150Scores = getScoresFromSessions(playerSessions, 'force at 150ms', 'max')
+    var maxRFDScores = getScoresFromSessions(playerSessions, 'RFD 50-150ms', 'max')
+
+    var avgPfScores = getScoresFromSessions(playerSessions, 'peak force', 'avg')
+    var avgF150Scores = getScoresFromSessions(playerSessions, 'force at 150ms', 'avg')
+    var avgRFDScores = getScoresFromSessions(playerSessions, 'RFD 50-150ms', 'avg')
+
+</script>
+
+<script>
+
+// Extract the data for the chart
+var LHTZ_chartData = playerSessions[lastSession]['LHTZ']['session']['Front leg force at 150ms'];
+var RHTZ_chartData = playerSessions[lastSession]['RHTZ']['session']['Front leg force at 150ms'];
+
+console.log(LHTZ_chartData)
+
+// Get the labels for the chart
+var labels = playerSessions[lastSession]['LHTZ']['session']['index'];
+
+// Create a new chart
+var ctx = document.getElementById("myChart").getContext("2d");
+var myChart = new Chart(ctx, {
+  type: "bar",
+  data: {
+    labels: labels,
+    datasets: [{
+        label: 'LHTZ',
+        data: LHTZ_chartData,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.2)'
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)'
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ',
+        data: RHTZ_chartData,
+        backgroundColor: [
+          'rgba(54, 162, 235, 0.2)'
+        ],
+        borderColor: [
+          'rgba(54, 162, 235, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    plugins: {
+      tooltip: {
+        mode: 'index', // Display tooltip for the nearest point in the x-axis
+        intersect: false,
+     }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          text: 'Force (kg)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        title: {
+          text: 'Test number',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      }
+    }
+  }
+});
+
+// Get references to the select elements
+var sessionSelect = document.getElementById("baseline-select");
+sessionSelect.addEventListener("change", updateChart);
+var metricSelect = document.getElementById("metric-select");
+metricSelect.addEventListener("change", updateChart);
+// Function to update the chart when a new option is selected
+function updateChart() {
+    var selectedSession = sessionSelect.options[sessionSelect.selectedIndex].text;
+    var sessionData = getSessionData2(playerSessions, selectedSession);
+    var table1 = document.getElementById("last-baseline-table")
+    var selectedMetric = metricSelect.options[metricSelect.selectedIndex].text;
+    updateChartDataSession2(sessionData, selectedMetric, myChart);
+    updateTable2(sessionData, selectedMetric, table1);
+  }
+updateChart();
+  </script>
+<script>
+// Extract the data for the chart
+var LHTZ_FLchartData = playerSessions[lastSession]['LHTZ']['session']['Front leg peak force'];
+var LHTZ_BLchartData = playerSessions[lastSession]['LHTZ']['session']['Back leg peak force'];
+var RHTZ_FLchartData = playerSessions[lastSession]['RHTZ']['session']['Front leg peak force'];
+var RHTZ_BLchartData = playerSessions[lastSession]['RHTZ']['session']['Back leg peak force'];
+var TZ_asym = playerSessions[lastSession]["Asymmetry"]["session"]["Peak crush factor"];
+
+
+// Get the labels for the chart
+var labels = playerSessions[lastSession]['LHTZ']['session']['index'];
+
+// Create a new chart
+var ctx6 = document.getElementById("lb-combined-crush").getContext("2d");
+var lbCombinedCrush = new Chart(ctx6, {
+  type: "bar",
+  data: {
+    labels: labels,
+    datasets: [{
+        label: 'Asymmetry',
+        data: TZ_asym,
+        borderColor: [
+          'black'
+        ],
+        borderWidth: 1,
+        yAxisID: 'y1',
+        type: 'line'
+      },
+      {
+        label: 'LHTZ FL',
+        data: LHTZ_FLchartData,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.6)'
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)'
+        ],
+        yAxisID: 'y',
+        borderWidth: 1
+      },
+      {
+        label: 'LHTZ BL',
+        data: LHTZ_BLchartData,
+        backgroundColor: [
+         'rgba(255, 99, 132, 0.2)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(255, 99, 132, 1)'
+
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ FL',
+        data: RHTZ_FLchartData,
+        backgroundColor: [
+          'rgba(100, 149, 237, 0.8)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(100, 149, 237, 1)'
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'RHTZ BL',
+        data: RHTZ_BLchartData,
+        backgroundColor: [
+          'rgba(100, 149, 237, 0.2)'
+        ],
+        yAxisID: 'y',
+        borderColor: [
+          'rgba(100, 149, 237, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    plugins: {
+      tooltip: {
+        mode: 'index', // Display tooltip for the nearest point in the x-axis
+        intersect: false,
+     }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        stacked: true,
+        title: {
+          text: 'Peak force (kg)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      y1: {
+        position: 'right',
+        min: -100,
+        max: 100,
+        title: {
+          text: 'Asymmetry (%)',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        stacked: true,
+        title: {
+          text: 'Test number',
+          color: 'black',
+          display: true
+        },
+        border: {
+          color: 'black'
+        },
+        ticks: {
+          color: 'black'
+        }
+      }
+    }
+  }
+});
+
+// Get references to the select elements
+var sessionSelect5 = document.getElementById("baseline-select");
+sessionSelect5.addEventListener("change", updateChart5);
+var metricSelect5 = document.getElementById("asym-select");
+metricSelect5.addEventListener("change", updateChart5);
+var dataSelect5 = document.getElementById("cc-metric-select");
+dataSelect5.addEventListener("change", updateChart5);
+// Function to update the chart when a new option is selected
+function updateChart5() {
+    var selectedSession5 = sessionSelect5.options[sessionSelect5.selectedIndex].text;
+    var sessionData5 = getSessionData2(playerSessions, selectedSession5);
+    var table5 = document.getElementById("last-baseline-cc-table")
+    var selectedMetric5 = metricSelect5.options[metricSelect5.selectedIndex].text;
+    var selectedData5 = dataSelect5.options[dataSelect5.selectedIndex].text;
+    chartData = getAsymMetric(selectedData5, sessionData5);
+    var TZ_asym = getAsym(selectedMetric5, chartData);
+    updateChartDataAsym(TZ_asym, chartData, sessionData5, lbCombinedCrush);
+    updateTableAsym(TZ_asym, chartData, table5);
+  }
+updateChart5();
+  </script>

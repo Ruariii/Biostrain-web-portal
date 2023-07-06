@@ -10,7 +10,6 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, log
 from werkzeug.security import check_password_hash, generate_password_hash
 import os
 import PBI_python_module as pb
-import numpy as np
 import requests
 from sqlalchemy import create_engine
 
@@ -90,6 +89,9 @@ class PlayerData(db.Model, UserMixin):
     User = db.Column(db.Text)
     Timestamp = db.Column(db.Integer)
     Protocol = db.Column(db.Text)
+    Phase = db.Column(db.Integer)
+    Strategy = db.Column(db.Text)
+    Matchday = db.Column(db.Text)
     TZ = db.Column(db.Text)
     Left0ms = db.Column(db.Float)
     Left50ms = db.Column(db.Float)
@@ -178,9 +180,12 @@ def dashboard():
             }
     uname = current_user.username
     user = Login.query.filter_by(username=uname).first()
-    squads = list(np.unique(np.array([player.Org for player in PlayerProfiles.query.filter_by(loginID=current_user.id).all()])))
+    player_profiles = PlayerProfiles.query.filter_by(loginID=current_user.id).all()
+    squads = list(set([player.Org for player in player_profiles]))
+    squads.sort()
     try:
-        pros = list(np.unique(np.array([player.Protocol for player in PlayerData.query.filter_by(Org=squads[0], loginID=current_user.id).all()])))
+        player_data = PlayerData.query.filter_by(Org=squads[0], loginID=current_user.id).all()
+        pros = list(set([player.Protocol for player in player_data]))
         squadform.org.choices = [squad for squad in squads]
         squadform.pro.choices = [pro for pro in pros]
         playerform.squad.choices = squads
@@ -209,44 +214,43 @@ def dashboard():
         except:
             org = request.form['squad']
             name = request.form['name']
-            playerTestData = PlayerData.query.filter_by(loginID=current_user.id, User=name, Org=org)
+            playerTestData = PlayerData.query.filter_by(User=name, Org=org)
             sessions, lastBaseline, baselineList, baselineProtocolList, \
             lastFatigue, fatigueList, fatigueProtocolList, dates, numTests = pb.getPlayerDict(playerTestData)
-
+            LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
+            playerSessions = pb.getSessions(sessions)
             try:
-                LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
+                tableList = pb.getSessionTable(playerSessions)
             except:
-                LHTZ_baseline, RHTZ_baseline = [], []
-            try:
-                LHTZ_fatigue, RHTZ_fatigue = pb.getPlayerTzDict(sessions, lastFatigue)
-            except:
-                LHTZ_fatigue, RHTZ_fatigue = [], []
-            baselineHistoricalData = pb.getHistoricalDict(sessions, baselineList)
-            fatigueHistoricalData = pb.getHistoricalDict(sessions, fatigueList)
-            lastBaselineList = lastBaseline.split(':')
-            lastFatigueList = lastFatigue.split(':')
-            results = pb.get_scores(playerTestData)
-            report = pb.generate_report(results)
-
-            return render_template('player.html',
-                                   sessions=sessions,
-                                   baselineList=baselineList,
-                                   baselineProtocolList=baselineProtocolList,
-                                   fatigueProtocolList=fatigueProtocolList,
-                                   fatigueList=fatigueList,
-                                   lastBaselineList=lastBaselineList,
-                                   lastFatigueList=lastFatigueList,
-                                   dates=dates,
-                                   numTests=numTests,
-                                   LHTZ_baseline=LHTZ_baseline,
-                                   RHTZ_baseline=RHTZ_baseline,
-                                   LHTZ_fatigue=LHTZ_fatigue,
-                                   RHTZ_fatigue=RHTZ_fatigue,
-                                   baselineHistoricalData=baselineHistoricalData,
-                                   fatigueHistoricalData=fatigueHistoricalData,
-                                   name=name,
-                                   report=report
-                                   )
+                tableList = ''
+            playerTags = pb.getPlayerTags(playerSessions)
+            sessionList = list(sessions)
+            selectedSession = request.args.get('tabular-session-select')
+            playerinfo_content = render_template('playerinfo.html',
+                                                 name=name,
+                                                 org=org,
+                                                 playerSessions=playerSessions,
+                                                 sessionList=sessionList,
+                                                 dates=dates,
+                                                 numTests=numTests
+                                                 )
+            sessionselector_content = render_template('sessionselector.html',
+                                                      playerSessions=playerSessions,
+                                                      sessionList=sessionList[::-1],
+                                                      sessions=sessions,
+                                                      RHTZ_baseline=RHTZ_baseline,
+                                                      LHTZ_baseline=LHTZ_baseline,
+                                                      tableList=tableList[::-1],
+                                                      selectedSession=selectedSession
+                                                      )
+            progresstracker_content = render_template('progresstracker.html',
+                                                      playerSessions=playerSessions,
+                                                      playerTags=playerTags,
+                                                      sessionList=sessionList)
+            return render_template('playernew.html',
+                                   playerinfo_content=playerinfo_content,
+                                   sessionselector_content=sessionselector_content,
+                                   progresstracker_content=progresstracker_content)
 
     return render_template('dashboard.html', form=form)
 
@@ -303,6 +307,43 @@ def squadSelect(squad):
 
 
     return jsonify({'protocols' : proArray})
+
+@app.route('/playernew')
+@login_required
+def playernew():
+    playerTestData = PlayerData.query.filter_by(User='Ruari Hodgin', Org='Salford')
+    sessions, lastBaseline, baselineList, baselineProtocolList, \
+    lastFatigue, fatigueList, fatigueProtocolList, dates, numTests = pb.getPlayerDict(playerTestData)
+    LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
+    playerSessions = pb.getSessions(sessions)
+    tableList = pb.getSessionTable(playerSessions)
+    playerTags = pb.getPlayerTags(playerSessions)
+    sessionList  = list(sessions)
+    selectedSession = request.args.get('tabular-session-select')
+    playerinfo_content = render_template('playerinfo.html',
+                                         playerSessions=playerSessions,
+                                         sessionList=sessionList,
+                                         dates=dates,
+                                         numTests=numTests
+                                         )
+    sessionselector_content = render_template('sessionselector.html',
+                                         playerSessions=playerSessions,
+                                         sessionList=sessionList[::-1],
+                                         sessions=sessions,
+                                         RHTZ_baseline=RHTZ_baseline,
+                                         LHTZ_baseline=LHTZ_baseline,
+                                         tableList=tableList[::-1],
+                                         selectedSession=selectedSession
+                                        )
+    progresstracker_content = render_template('progresstracker.html',
+                                              playerSessions=playerSessions,
+                                              playerTags=playerTags,
+                                              sessionList=sessionList)
+    return render_template('playernew.html', playerinfo_content=playerinfo_content,
+                           sessionselector_content=sessionselector_content,
+                           progresstracker_content=progresstracker_content)
+
+
 
 #Invalid URL
 @app.errorhandler(404)

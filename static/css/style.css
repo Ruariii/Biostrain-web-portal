@@ -7,3 +7,31 @@ html, body {
     display: block;
     background: #f4f4f4;
 }
+.card-deck {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card {
+  margin: 10px;
+  width: 18rem;
+}
+
+.tile {
+  background-color: #D3D3D3;
+  border-radius: 5px;
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+  padding: 20px;
+  text-align: center;
+}
+
+.tile h3 {
+  margin-top: 0;
+}
+
+.tile p {
+  font-size: 24px;
+  margin: 0;
+}
