@@ -664,7 +664,7 @@ function getRadarData(playerSessions) {
   for (var session in playerSessions) {
     var PeakL = playerSessions[session]['LHTZ']['avg']['Peak crush factor'][0]
     var PeakR = playerSessions[session]['RHTZ']['avg']['Peak crush factor'][0]
-    var PeakScore = (PeakL+PeakR)/5
+    var PeakScore = (PeakL+PeakR)/6
     console.log(PeakL)
     peakScores.push(PeakScore)
 
@@ -675,7 +675,7 @@ function getRadarData(playerSessions) {
 
     var RFDL = playerSessions[session]['LHTZ']['avg']['Combined RFD 50-150ms'][0]
     var RFDR = playerSessions[session]['RHTZ']['avg']['Combined RFD 50-150ms'][0]
-    var RFDScore = (RFDL+RFDR)/10
+    var RFDScore = (RFDL+RFDR)/12.5
     rfdScores.push(RFDScore)
 
     var AsymP = playerSessions[session]['Asymmetry']['avg']['Peak crush factor'][0]
