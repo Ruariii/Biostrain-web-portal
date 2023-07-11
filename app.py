@@ -217,14 +217,10 @@ def dashboard():
             playerTestData = PlayerData.query.filter_by(User=name, Org=org)
             sessions, lastBaseline, baselineList, baselineProtocolList, \
             lastFatigue, fatigueList, fatigueProtocolList, dates, numTests = pb.getPlayerDict(playerTestData)
-            LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
             playerSessions = pb.getSessions(sessions)
-            try:
-                tableList = pb.getSessionTable(playerSessions)
-            except:
-                tableList = ''
+            tableList = pb.getSessionTables(playerSessions)
             playerTags = pb.getPlayerTags(playerSessions)
-            sessionList = list(sessions)
+            sessionList = list(playerSessions)
             selectedSession = request.args.get('tabular-session-select')
             playerinfo_content = render_template('playerinfo.html',
                                                  name=name,
@@ -238,8 +234,6 @@ def dashboard():
                                                       playerSessions=playerSessions,
                                                       sessionList=sessionList[::-1],
                                                       sessions=sessions,
-                                                      RHTZ_baseline=RHTZ_baseline,
-                                                      LHTZ_baseline=LHTZ_baseline,
                                                       tableList=tableList[::-1],
                                                       selectedSession=selectedSession
                                                       )

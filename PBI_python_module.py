@@ -158,8 +158,6 @@ def getPlayerDict(playerTestData):
         dates.append(date[0:len(date)-9])
         numTests.append(len(tests['index']))
 
-    totalTests = sum(numTests)
-    lastTest = dates[len(dates)-1]
 
 
     return sessions, lastBaseline, baselineList, baselineProtocolList, lastFatigue, fatigueList, fatigueProtocolList, dates, numTests
@@ -1191,135 +1189,197 @@ def getSessions(sessions):
 
     return playerSessions
 
-
-
-def getSessionTable(playerSessions):
+def getSessionTables(playerSessions):
     tableList = []
     for session in playerSessions:
+        lhtzSession = playerSessions[session]['LHTZ']['session']
+        rhtzSession = playerSessions[session]['RHTZ']['session']
+        asymmetrySession = playerSessions[session]['Asymmetry']['session']
 
-        lhtzSession = playerSessions[session]['LHTZ']['session'];
-        rhtzSession = playerSessions[session]['RHTZ']['session'];
-        asymmetrySession = playerSessions[session]['Asymmetry']['session'];
+        if len(lhtzSession) >= len(rhtzSession):
+            maxSession = lhtzSession
+        else:
+            maxSession = rhtzSession
 
-        report = '''
-            <table class="table table-hover" >
-              <tr class="table-secondary">
-                <td colspan="4" style="font-size: 0.75rem">Test conditions</td>
-                <td colspan="9" style="font-size: 0.75rem">LHTZ</td>
-                <td colspan="9" style="font-size: 0.75rem">RHTZ</td>
-                <td colspan="9" style="font-size: 0.75rem">Asymmetry</td>
-              </tr>
+        test_info_table = '''
+            <h6>Test information</h6> 
+            <table class="table table-hover" style="text-align:center">
               <tr>
-                <td>Index</td>
-                <td>Matchday</td>
-                <td>Strategy</td>
-                <td>Phase</td>
-                <td>FL peak force (kg)</td>
-                <td>BL peak force (kg)</td>
-                <td>Peak crush factor (kg)</td>
-                <td>FL force at 150ms (kg)</td>
-                <td>BL force at 150ms (kg)</td>
-                <td>Crush factor at 150ms (kg)</td>
-                <td>FL RFD (kg/s)</td>
-                <td>BL RFD (kg/s)</td>
-                <td>Combined RFD 50-150ms (kg/s)</td>
-                <td>FL peak force (kg)</td>
-                <td>BL peak force (kg)</td>
-                <td>Peak crush factor (kg)</td>
-                <td>FL force at 150ms (kg)</td>
-                <td>BL force at 150ms (kg)</td>
-                <td>Crush factor at 150ms (kg)</td>
-                <td>FL (kg/s)</td>
-                <td>BL RFD (kg/s)</td>
-                <td>Combined RFD (kg/s)</td>
-                <td>FL peak force (%)</td>
-                <td>BL peak force (%)</td>
-                <td>Peak crush factor (%)</td>
-                <td>FL force at 150ms (%)</td>
-                <td>BL force at 150ms (%)</td>
-                <td>Crush factor at 150ms (%)</td>
-                <td>FL RFD (%)</td>
-                <td>BL RFD (%)</td>
-                <td>Combined RFD (%)</td>
+                <th>Index</th>
+                <th>Strategy</th>
+                <th>Matchday</th>
+                <th>Phase</th>
               </tr>
         '''
 
-        final_report = report
-        for test in range(len(playerSessions[session]['LHTZ']['session']['index'])):
+        lhtz_table = '''
+            <h6>LHTZ results</h6> 
+            <table class="table table-hover" style="text-align:center">
+              <tr>
+                <th>LHTZ - FL peak force (kg)</th>
+                <th>LHTZ - BL peak force (kg)</th>
+                <th>LHTZ - Peak crush factor (kg)</th>
+                <th>LHTZ - FL force at 150ms (kg)</th>
+                <th>LHTZ - BL force at 150ms (kg)</th>
+                <th>LHTZ - Crush factor at 150ms (kg)</th>
+                <th>LHTZ - FL RFD (kg/s)</th>
+                <th>LHTZ - BL RFD (kg/s)</th>
+                <th>LHTZ - Combined RFD 50-150ms (kg/s)</th>
+              </tr>
+        '''
 
-            row = """
-            <tr>
+        rhtz_table = '''
+            <h6>RHTZ results</h6>
+            <table class="table table-hover" style="text-align:center">
+              <tr>
+                <th>RHTZ - FL peak force (kg)</th>
+                <th>RHTZ - BL peak force (kg)</th>
+                <th>RHTZ - Peak crush factor (kg)</th>
+                <th>RHTZ - FL force at 150ms (kg)</th>
+                <th>RHTZ - BL force at 150ms (kg)</th>
+                <th>RHTZ - Crush factor at 150ms (kg)</th>
+                <th>RHTZ - FL RFD (kg/s)</th>
+                <th>RHTZ - BL RFD (kg/s)</th>
+                <th>RHTZ - Combined RFD 50-150ms (kg/s)</th>
+              </tr>
+        '''
+
+        asym_table = '''
+            <h6>Asymmetry results</h6>
+            <table class="table table-hover" style="text-align:center">
+              <tr>
+                <th>FL peak force (%)</th>
+                <th>BL peak force (%)</th>
+                <th>Peak crush factor (%)</th>
+                <th>FL force at 150ms (%)</th>
+                <th>BL force at 150ms (%)</th>
+                <th>Crush factor at 150ms (%)</th>
+                <th>FL RFD (%)</th>
+                <th>BL RFD (%)</th>
+                <th>Combined RFD 50-150ms (%)</th>
+              </tr>
+        '''
+
+        # Iterate over the test indices
+        for test_index in range(len(maxSession['index'])):
+            # Add row to 'testInfo' table
+            test_info_table += '''
+              <tr>
                 <td>{index}</td>
                 <td>{strategy}</td>
                 <td>{matchday}</td>
                 <td>{phase}</td>
-                <td>{LFP}</td>
-                <td>{LBP}</td>
-                <td>{LCP}</td>
-                <td>{LF150}</td>
-                <td>{LB150}</td>
-                <td>{LC150}</td>
-                <td>{LFrfd}</td>
-                <td>{LBrfd}</td>
-                <td>{LCrfd}</td>
-                <td>{RFP}</td>
-                <td>{RBP}</td>
-                <td>{RCP}</td>
-                <td>{RF150}</td>
-                <td>{RB150}</td>
-                <td>{RC150}</td>
-                <td>{RFrfd}</td>
-                <td>{RBrfd}</td>
-                <td>{RCrfd}</td>
-                <td>{AFP}</td>
-                <td>{ABP}</td>
-                <td>{ACP}</td>
-                <td>{AF150}</td>
-                <td>{AB150}</td>
-                <td>{AC150}</td>
-                <td>{AFrfd}</td>
-                <td>{ABrfd}</td>
-                <td>{ACrfd}</td>
-            </tr>
-            """
+              </tr>
+            '''.format(
+                index=maxSession['index'][test_index],
+                strategy=maxSession['Strategy'][test_index],
+                matchday=maxSession['Matchday'][test_index],
+                phase=maxSession['Phase'][test_index]
+            )
 
-            final_report += row.format(index=lhtzSession['index'][test],
-                                       strategy=lhtzSession['Strategy'][test],
-                                       matchday=lhtzSession['Matchday'][test],
-                                       phase=lhtzSession['Phase'][test],
-                                       LFP=lhtzSession['Front leg peak force'][test],
-                                       LBP=lhtzSession['Back leg peak force'][test],
-                                       LCP=lhtzSession['Peak crush factor'][test],
-                                       LF150=lhtzSession['Front leg force at 150ms'][test],
-                                       LB150=lhtzSession['Back leg force at 150ms'][test],
-                                       LC150=lhtzSession['Crush factor at 150ms'][test],
-                                       LFrfd=lhtzSession['Front leg RFD 50-150ms'][test],
-                                       LBrfd=lhtzSession['Back leg RFD 50-150ms'][test],
-                                       LCrfd=lhtzSession['Combined RFD 50-150ms'][test],
-                                       RFP=rhtzSession['Front leg peak force'][test],
-                                       RBP=rhtzSession['Back leg peak force'][test],
-                                       RCP=rhtzSession['Peak crush factor'][test],
-                                       RF150=rhtzSession['Front leg force at 150ms'][test],
-                                       RB150=rhtzSession['Back leg force at 150ms'][test],
-                                       RC150=rhtzSession['Crush factor at 150ms'][test],
-                                       RFrfd=rhtzSession['Front leg RFD 50-150ms'][test],
-                                       RBrfd=rhtzSession['Back leg RFD 50-150ms'][test],
-                                       RCrfd=rhtzSession['Combined RFD 50-150ms'][test],
-                                       AFP=asymmetrySession['Front leg peak force'][test],
-                                       ABP=asymmetrySession['Back leg peak force'][test],
-                                       ACP=asymmetrySession['Peak crush factor'][test],
-                                       AF150=asymmetrySession['Front leg force at 150ms'][test],
-                                       AB150=asymmetrySession['Back leg force at 150ms'][test],
-                                       AC150=asymmetrySession['Crush factor at 150ms'][test],
-                                       AFrfd=asymmetrySession['Front leg RFD 50-150ms'][test],
-                                       ABrfd=asymmetrySession['Back leg RFD 50-150ms'][test],
-                                       ACrfd=asymmetrySession['Combined RFD 50-150ms'][test],
-                                       )
-        final_report+= "</table>"
+            # Check if the test index exists in 'LHTZ' and add row to 'LHTZ' table
+            if test_index < len(lhtzSession['index']):
+                lhtz_table += '''
+                  <tr>
+                    <td>{LFP}</td>
+                    <td>{LBP}</td>
+                    <td>{LCP}</td>
+                    <td>{LF150}</td>
+                    <td>{LB150}</td>
+                    <td>{LC150}</td>
+                    <td>{LFrfd}</td>
+                    <td>{LBrfd}</td>
+                    <td>{LCrfd}</td>
+                  </tr>
+                '''.format(
+                    LFP=lhtzSession['Front leg peak force'][test_index],
+                    LBP=lhtzSession['Back leg peak force'][test_index],
+                    LCP=lhtzSession['Peak crush factor'][test_index],
+                    LF150=lhtzSession['Front leg force at 150ms'][test_index],
+                    LB150=lhtzSession['Back leg force at 150ms'][test_index],
+                    LC150=lhtzSession['Crush factor at 150ms'][test_index],
+                    LFrfd=lhtzSession['Front leg RFD 50-150ms'][test_index],
+                    LBrfd=lhtzSession['Back leg RFD 50-150ms'][test_index],
+                    LCrfd=lhtzSession['Combined RFD 50-150ms'][test_index]
+                )
+
+            # Check if the test index exists in 'RHTZ' and add row to 'RHTZ' table
+            if test_index < len(rhtzSession['index']):
+                rhtz_table += '''
+                  <tr>
+                    <td>{RFP}</td>
+                    <td>{RBP}</td>
+                    <td>{RCP}</td>
+                    <td>{RF150}</td>
+                    <td>{RB150}</td>
+                    <td>{RC150}</td>
+                    <td>{RFrfd}</td>
+                    <td>{RBrfd}</td>
+                    <td>{RCrfd}</td>
+                  </tr>
+                '''.format(
+                    RFP=rhtzSession['Front leg peak force'][test_index],
+                    RBP=rhtzSession['Back leg peak force'][test_index],
+                    RCP=rhtzSession['Peak crush factor'][test_index],
+                    RF150=rhtzSession['Front leg force at 150ms'][test_index],
+                    RB150=rhtzSession['Back leg force at 150ms'][test_index],
+                    RC150=rhtzSession['Crush factor at 150ms'][test_index],
+                    RFrfd=rhtzSession['Front leg RFD 50-150ms'][test_index],
+                    RBrfd=rhtzSession['Back leg RFD 50-150ms'][test_index],
+                    RCrfd=rhtzSession['Combined RFD 50-150ms'][test_index]
+                )
+
+            # Check if the test index exists in 'asymmetry' and add row to 'asym' table
+            if test_index < len(asymmetrySession['Front leg peak force']):
+                asym_table += '''
+                  <tr>
+                    <td>{AFP}</td>
+                    <td>{ABP}</td>
+                    <td>{ACP}</td>
+                    <td>{AF150}</td>
+                    <td>{AB150}</td>
+                    <td>{AC150}</td>
+                    <td>{AFrfd}</td>
+                    <td>{ABrfd}</td>
+                    <td>{ACrfd}</td>
+                  </tr>
+                '''.format(
+                    AFP=asymmetrySession['Front leg peak force'][test_index],
+                    ABP=asymmetrySession['Back leg peak force'][test_index],
+                    ACP=asymmetrySession['Peak crush factor'][test_index],
+                    AF150=asymmetrySession['Front leg force at 150ms'][test_index],
+                    AB150=asymmetrySession['Back leg force at 150ms'][test_index],
+                    AC150=asymmetrySession['Crush factor at 150ms'][test_index],
+                    AFrfd=asymmetrySession['Front leg RFD 50-150ms'][test_index],
+                    ABrfd=asymmetrySession['Back leg RFD 50-150ms'][test_index],
+                    ACrfd=asymmetrySession['Combined RFD 50-150ms'][test_index]
+                )
+
+        test_info_table += '</table>'
+        lhtz_table += '</table>'
+        rhtz_table += '</table>'
+        asym_table += '</table>'
+
+        # Combine the tables into a single HTML layout
+        final_report = '''
+            <div class="table-container">
+                <div class="table-section">{test_info}</div>
+                <div class="table-section">{lhtz}</div>
+                <div class="table-section">{rhtz}</div>
+                <div class="table-section">{asym}</div>
+            </div>
+        '''.format(
+            test_info=test_info_table,
+            lhtz=lhtz_table,
+            rhtz=rhtz_table,
+            asym=asym_table
+        )
 
         tableList.append(final_report)
 
     return tableList
+
+
 
 def getPlayerTags(playerSessions):
 

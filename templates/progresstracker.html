@@ -18,7 +18,7 @@
           </div>
           <div class="col-md-3" style="text-align:center">
             <label for="sessionSelectPF" style="text-align:left">Select Sessions:</label><br>
-            <select id="sessionSelectPF" multiple></select>
+            <select id="sessionSelectPF" class="custom-dropdown" multiple></select>
         </div>
         <div class="col-md-2">
           <label for="timeframe-select">Select timeframe:</label><br>
@@ -185,6 +185,8 @@
   var playerSessions = {{playerSessions|tojson|safe}}
   var playerTags = {{playerTags|tojson|safe}}
   var maxScores = getPlayerMaxScores(playerSessions)
+  console.log('Max score dict');
+  console.log(maxScores);
 
   // Get references to HTML elements
   var sessionSelectPF = document.getElementById('sessionSelectPF');
@@ -197,6 +199,8 @@
   // Get the latest session
   var sessions = Object.keys(playerSessions);
   var latestSession = sessions[sessions.length - 1];
+  console.log('Most recent session');
+  console.log(latestSession);
 
 </script>
 
@@ -250,13 +254,14 @@ var peakProgress = new Chart(ctx, {
         title: {
           text: 'Test number',
           color: 'black',
-          display: true
+          display: false
         },
         border: {
           color: 'black'
         },
         ticks: {
-          color: 'black'
+          color: 'black',
+          display: false
         }
       }
     }
@@ -264,7 +269,9 @@ var peakProgress = new Chart(ctx, {
 });
 
 // Populate the session select dropdown
-for (const session of sessions) {
+var count = sessionList.length;
+for(var i = 0; i < count; i++) {
+  var session = sessionList[i];
   var option = document.createElement('option');
   option.value = session;
   option.text = session;
@@ -277,7 +284,6 @@ for (var i = 0; i < sessionSelectPF.options.length; i++) {
 
 function updateChartAndTable() {
   var selectedSessionsPF = Array.from(sessionSelectPF.selectedOptions).map(option => option.value);
-  console.log(selectedSessionsPF);
   var selectedLeg = legSelect.options[legSelect.selectedIndex].text;
   var selectedConfig = configSelect.options[configSelect.selectedIndex].text;
   var selectedStrategy = strategySelect.options[strategySelect.selectedIndex].text;
@@ -303,8 +309,6 @@ function updateChartAndTable() {
 
   for (var i = 0; i < selectedSessionsPF.length; i++) {
     var session = selectedSessionsPF[i];
-    console.log('session name');
-    console.log(session);
 
     filteredData[session] = { 'LHTZ': [], 'RHTZ': [] };
 
@@ -430,6 +434,7 @@ for (var x = 0; x < selectedSessionsPF.length; x++) {
 // Add event listener to session select dropdown
 sessionSelectPF.addEventListener('change', updateChartAndTable);
 legSelect.addEventListener('change', updateChartAndTable);
+timeframeSelect.addEventListener('change', updateChartAndTable);
 configSelect.addEventListener('change', updateChartAndTable);
 strategySelect.addEventListener('change', updateChartAndTable);
 
@@ -488,13 +493,14 @@ var f150Progress = new Chart(ctx, {
         title: {
           text: 'Test number',
           color: 'black',
-          display: true
+          display: false
         },
         border: {
           color: 'black'
         },
         ticks: {
-          color: 'black'
+          color: 'black',
+          display: false
         }
       }
     }
@@ -505,7 +511,6 @@ var f150Progress = new Chart(ctx, {
 
 function updateChartAndTableF150() {
   var selectedSessionsPF = Array.from(sessionSelectPF.selectedOptions).map(option => option.value);
-  console.log(selectedSessionsPF);
   var selectedLeg = legSelect.options[legSelect.selectedIndex].text;
   var selectedConfig = configSelect.options[configSelect.selectedIndex].text;
   var selectedStrategy = strategySelect.options[strategySelect.selectedIndex].text;
@@ -531,8 +536,6 @@ function updateChartAndTableF150() {
 
   for (var i = 0; i < selectedSessionsPF.length; i++) {
     var session = selectedSessionsPF[i];
-    console.log('session name');
-    console.log(session);
 
     filteredData[session] = { 'LHTZ': [], 'RHTZ': [] };
 
@@ -658,6 +661,7 @@ for (var x = 0; x < selectedSessionsPF.length; x++) {
 // Add event listener to session select dropdown
 sessionSelectPF.addEventListener('change', updateChartAndTableF150);
 legSelect.addEventListener('change', updateChartAndTableF150);
+timeframeSelect.addEventListener('change', updateChartAndTable);
 configSelect.addEventListener('change', updateChartAndTableF150);
 strategySelect.addEventListener('change', updateChartAndTableF150);
 
@@ -716,13 +720,14 @@ var rfdProgress = new Chart(ctx, {
         title: {
           text: 'Test number',
           color: 'black',
-          display: true
+          display: false
         },
         border: {
           color: 'black'
         },
         ticks: {
-          color: 'black'
+          color: 'black',
+          display: false
         }
       }
     }
@@ -733,7 +738,6 @@ var rfdProgress = new Chart(ctx, {
 
 function updateChartAndTableRFD() {
   var selectedSessionsPF = Array.from(sessionSelectPF.selectedOptions).map(option => option.value);
-  console.log(selectedSessionsPF);
   var selectedLeg = legSelect.options[legSelect.selectedIndex].text;
   var selectedConfig = configSelect.options[configSelect.selectedIndex].text;
   var selectedStrategy = strategySelect.options[strategySelect.selectedIndex].text;
@@ -759,8 +763,6 @@ function updateChartAndTableRFD() {
 
   for (var i = 0; i < selectedSessionsPF.length; i++) {
     var session = selectedSessionsPF[i];
-    console.log('session name');
-    console.log(session);
 
     filteredData[session] = { 'LHTZ': [], 'RHTZ': [] };
 
@@ -886,6 +888,7 @@ for (var x = 0; x < selectedSessionsPF.length; x++) {
 // Add event listener to session select dropdown
 sessionSelectPF.addEventListener('change', updateChartAndTableRFD);
 legSelect.addEventListener('change', updateChartAndTableRFD);
+timeframeSelect.addEventListener('change', updateChartAndTable);
 configSelect.addEventListener('change', updateChartAndTableRFD);
 strategySelect.addEventListener('change', updateChartAndTableRFD);
 

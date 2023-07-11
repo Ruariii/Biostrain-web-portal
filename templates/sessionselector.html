@@ -71,13 +71,6 @@
     <div class="row">
     <div class="col-md-6">
       <h5 class="card-title">Tabular view:</h5>
-      <label for="tabular-session-select">Select a session from the list of your saved data:</label>
-      <select id="tabular-session-select" name="tabular-session-select">
-        <option value="all-sessions">All sessions</option>
-        {% for session in sessionList %}
-          <option value="{{ session }}">{{ session }}</option>
-        {% endfor %}
-      </select>
     </div>
   </div>
   <br>
@@ -85,7 +78,7 @@
   <script>
   // Function to handle the dropdown selection
   function handleDropdownSelection() {
-    var selectedValue = document.getElementById("tabular-session-select").value;
+    var selectedValue = document.getElementById("baseline-select").value;
     var sessions = document.getElementsByClassName("session");
 
     // Hide all sessions
@@ -107,14 +100,13 @@
   }
 
   // Add event listener to the dropdown select
-  document.getElementById("tabular-session-select").addEventListener("change", handleDropdownSelection);
+  document.getElementById("baseline-select").addEventListener("change", handleDropdownSelection);
 
   // Initial execution of the function to display the selected sessions
   handleDropdownSelection();
 </script>
   {% for i in range(tableList|length) %}
     <div class="session" id="{{ sessionList[i] }}">
-      <h6>{{ sessionList[i] }}</h6>
       <div class="table-container">{{ tableList[i]|safe }}</div>
       <hr>
     </div>

@@ -665,7 +665,6 @@ function getRadarData(playerSessions) {
     var PeakL = playerSessions[session]['LHTZ']['avg']['Peak crush factor'][0]
     var PeakR = playerSessions[session]['RHTZ']['avg']['Peak crush factor'][0]
     var PeakScore = (PeakL+PeakR)/6
-    console.log(PeakL)
     peakScores.push(PeakScore)
 
     var F150L = playerSessions[session]['LHTZ']['avg']['Crush factor at 150ms'][0]
@@ -691,7 +690,37 @@ function getRadarData(playerSessions) {
         var lsAsym = AsymScore
     };
   };
-  console.log(peakScores)
+
+  if (lsPeak > 100) {
+    lsPeak = 100
+  };
+  if (lsF150 > 100) {
+    lsF150 = 100
+  };
+  if (lsRFD > 100) {
+    lsRFD = 100
+  };
+  if (lsAsym < 0) {
+    lsAsym = 0
+  };
+
+  var atPeak = Math.max(...peakScores);
+  var atF150 = Math.max(...f150Scores);
+  var atRFD = Math.max(...rfdScores);
+  var atAsym = Math.max(...asymScores);
+  if (atPeak > 100) {
+    atPeak = 100
+  };
+  if (atF150 > 100) {
+    atF150 = 100
+  };
+  if (atRFD > 100) {
+    atRFD = 100
+  };
+  if (atAsym < 0) {
+    atAsym = 1
+  };
+
   let radarData = {
     'last-session': {
       'Peak force': lsPeak,
@@ -700,10 +729,10 @@ function getRadarData(playerSessions) {
       'Transition zone similarity': lsAsym
     },
     'PB': {
-      'Peak force': Math.max(...peakScores),
-      'Force at 150ms': Math.max(...f150Scores),
-      'RFD': Math.max(...rfdScores),
-      'Transition zone similarity': Math.max(...asymScores)
+      'Peak force': atPeak,
+      'Force at 150ms': atF150,
+      'RFD': atRFD,
+      'Transition zone similarity': atAsym
     }
   };
 
@@ -738,7 +767,7 @@ function extendDatesAndNumTests(dates, numTests) {
 }
 
 
-function getProgressData(playerSessions) {
+function getProgressData(playerSessions, sessionList) {
     const sessions = Object.keys(playerSessions);
     var peakProg = [];
     var f150Prog = [];
@@ -751,9 +780,12 @@ function getProgressData(playerSessions) {
     var strategy = [];
     var matchday = [];
     var phase = [];
+    var sessionNames = []
 
-
-    for (var session in playerSessions) {
+    var count = sessionList.length;
+    for(var i = 0; i < count; i++) {
+        var session = sessionList[i];
+        sessionNames.push(session)
         var PeakL = playerSessions[session]['LHTZ']['avg']['Peak crush factor'][0];
         var PeakR = playerSessions[session]['RHTZ']['avg']['Peak crush factor'][0];
         var PeakScore = PeakL + PeakR;
@@ -780,10 +812,10 @@ function getProgressData(playerSessions) {
 
         var rfdAsym = playerSessions[session]['Asymmetry']['avg']['Combined RFD 50-150ms'][0];
         rfdAsymProg.push(rfdAsym);
-    }
+    };
 
     return {
-        'labels': sessions,
+        'labels': sessionNames,
         'Peak force': peakProg,
         'Force at 150ms': f150Prog,
         'RFD 50-150ms': rfdProg,

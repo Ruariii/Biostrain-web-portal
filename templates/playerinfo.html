@@ -105,41 +105,23 @@
     </div>
   </div>
 
-<script>
-    // Event listeners for the buttons
-    var last5TestsButton = document.getElementById("last-5-session);
-    var seasonBestButton = document.getElementById("all-session");
-
-    last5TestsButton.addEventListener('click', function() {
-    updateOverviewButtonColor(this);
-    });
-
-
-
-    seasonBestButton.addEventListener('click', function() {
-    updateOverviewButtonColor(this);
-    });
-</script>
-<script>
-    window.addEventListener('load', function() {
-  var last5TestsButton = document.getElementById("last-5-session");
-  last5TestsButton.dispatchEvent(new Event('click'));
-});
-
-</script>
 
 <script>
     // Get the data from the LHTZ_data and RHTZ_data dictionaries
     var data = {{ playerSessions|tojson|safe }}
 
     var sessionList = {{ sessionList|safe }}
+    console.log('session list');
+    console.log(sessionList);
     var radarData = getRadarData(data)
 
     var extendedActivityData = extendDatesAndNumTests({{dates|safe}}, {{numTests|safe}})
     var extendedDates = extendedActivityData.dates
     var extendedNumTests = extendedActivityData.numTests
 
-    var progressData = getProgressData(data)
+    var progressData = getProgressData(data, sessionList)
+    console.log('progress session list');
+    console.log(progressData['labels']);
 
 </script>
 
