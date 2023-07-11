@@ -11,8 +11,8 @@
     <h5 class="card-title">Graphical view:</h5>
         <label for="baseline-select">Select a session from the list of your saved data:</label>
         <select id="baseline-select">
-          {% for session in sessionList %}
-          <option> {{ session }} </option>
+          {% for i in range(sessionList|length %}
+          <option> {{ sessionList[i] }} </option>
           {% endfor %}
         </select>
         <br><br>
