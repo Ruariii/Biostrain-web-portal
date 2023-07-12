@@ -20,24 +20,15 @@ app = Flask(__name__)
 # connect to Render database OR local database
 def connectDB():
     try:
-        # Get the raw file from GitHub
-        url = "https://raw.githubusercontent.com/Ruariii/Biostrain-web-portal/master/biostrain.db"
-        response = requests.get(url)
-        # Connect to the SQLite database
-        engine = create_engine('sqlite:///biostrain.db', connect_args={'check_same_thread': False})
-        # Create a connection to the database
-        conn = engine.raw_connection()
-        # Load the data from the raw file into the database
-        conn.executescript(response.content.decode('utf-8'))
-        # Close the database connection
-        conn.close()
-        # Set the database URI
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///biostrain.db'
-        debugStatus = False
-    except:
         engine = create_engine('sqlite:////Users/ruarihodgin/Desktop/Lucid/Biostrain/Biostrain-web-portal-main/biostrain.db')
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/ruarihodgin/Desktop/Lucid/Biostrain/Biostrain-web-portal-main/biostrain.db'
         debugStatus = True
+
+    except:
+        engine = create_engine('sqlite:////home/biostrain/Biostrain-web-portal/biostrain.db')
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/biostrain/Biostrain-web-portal/biostrain.db'
+        debugStatus = False
+
     return engine, debugStatus
 
 engine, debugStatus = connectDB()
@@ -305,37 +296,8 @@ def squadSelect(squad):
 @app.route('/playernew')
 @login_required
 def playernew():
-    playerTestData = PlayerData.query.filter_by(User='Ruari Hodgin', Org='Salford')
-    sessions, lastBaseline, baselineList, baselineProtocolList, \
-    lastFatigue, fatigueList, fatigueProtocolList, dates, numTests = pb.getPlayerDict(playerTestData)
-    LHTZ_baseline, RHTZ_baseline = pb.getPlayerTzDict(sessions, lastBaseline)
-    playerSessions = pb.getSessions(sessions)
-    tableList = pb.getSessionTable(playerSessions)
-    playerTags = pb.getPlayerTags(playerSessions)
-    sessionList  = list(sessions)
-    selectedSession = request.args.get('tabular-session-select')
-    playerinfo_content = render_template('playerinfo.html',
-                                         playerSessions=playerSessions,
-                                         sessionList=sessionList,
-                                         dates=dates,
-                                         numTests=numTests
-                                         )
-    sessionselector_content = render_template('sessionselector.html',
-                                         playerSessions=playerSessions,
-                                         sessionList=sessionList[::-1],
-                                         sessions=sessions,
-                                         RHTZ_baseline=RHTZ_baseline,
-                                         LHTZ_baseline=LHTZ_baseline,
-                                         tableList=tableList[::-1],
-                                         selectedSession=selectedSession
-                                        )
-    progresstracker_content = render_template('progresstracker.html',
-                                              playerSessions=playerSessions,
-                                              playerTags=playerTags,
-                                              sessionList=sessionList)
-    return render_template('playernew.html', playerinfo_content=playerinfo_content,
-                           sessionselector_content=sessionselector_content,
-                           progresstracker_content=progresstracker_content)
+
+    return render_template('playernew.html')
 
 
 

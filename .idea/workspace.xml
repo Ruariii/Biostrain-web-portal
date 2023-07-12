@@ -2,6 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="979caf6e-a1cb-4834-bfa4-7a692b335ec3" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/playerinfo.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/playerinfo.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/progresstracker.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/progresstracker.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/sessionselector.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/sessionselector.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
