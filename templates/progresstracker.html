@@ -307,7 +307,7 @@ function updateChartAndTable() {
 
   var filteredData = {};
 
-  for (var i = 0; i < selectedSessionsPF.length; i++) {
+  for (var i = selectedSessionsPF.length-1; i > -1; i--) {
     var session = selectedSessionsPF[i];
 
     filteredData[session] = { 'LHTZ': [], 'RHTZ': [] };
@@ -350,7 +350,7 @@ function updateChartAndTable() {
   var combinedTests = [];
 
   tooltipListPF = getProgressTooltipLists(playerSessions, selectedSessionsPF);
-  console.log(tooltipListPF);
+
 
   peakProgress.options.plugins.tooltip.callbacks.footer = function (context) {
         var index = context[0].dataIndex; // Get the index of the selected data point
@@ -389,6 +389,8 @@ for (var x = 0; x < selectedSessionsPF.length; x++) {
 
   // Update the chart
   peakProgress.update();
+
+
 
   // Update the table
   dataTableBodyPF.innerHTML = '';
@@ -534,7 +536,7 @@ function updateChartAndTableF150() {
 
   var filteredData = {};
 
-  for (var i = 0; i < selectedSessionsPF.length; i++) {
+  for (var i = selectedSessionsPF.length-1; i > -1; i--) {
     var session = selectedSessionsPF[i];
 
     filteredData[session] = { 'LHTZ': [], 'RHTZ': [] };
@@ -761,7 +763,7 @@ function updateChartAndTableRFD() {
 
   var filteredData = {};
 
-  for (var i = 0; i < selectedSessionsPF.length; i++) {
+  for (var i = selectedSessionsPF.length-1; i > -1; i--) {
     var session = selectedSessionsPF[i];
 
     filteredData[session] = { 'LHTZ': [], 'RHTZ': [] };

@@ -19,75 +19,72 @@
       </div>
 
     {% endfor %}
-    <br>
   </div>
   <h4> {{current_user.username|capitalize}} Dashboard </h4>
-  <div class="button">
-    <a class="nav-link" href="{{ url_for('playernew') }}"> </a>
-  </div>
-  <br><br>
-  <div class="card text-center">
-  <div class="card-header text-muted" style="text-align:left">
-    Squad view: </div>
-  <div class="card-body">
-    <h5 class="card-title">View squad data</h5>
-    <p class="card-text">Select a protocol to view performance analysis across a whole squad </p>
+  <div class="container">
+    <div class="large-tile">
+      <div class="row">
+        <div class="col-md-6">
+            <div class="card text-center rounded-border">
+              <div class="card-header text-muted" style="text-align:left">
+                Squad view: </div>
+              <div class="card-body">
+                <h5 class="card-title">View squad data</h5>
+                <p class="card-text">Select a protocol to view performance analysis across a whole squad </p>
 
-        <div class="shadow p-3 mb-5 bg-body rounded">
-      <form method="POST">
-        {{ form.squad.csrf_token }}
+                    <div class="shadow p-3 mb-5 bg-body rounded">
+                  <form method="POST">
+                    {{ form.squad.csrf_token }}
 
 
-        {{( form.squad.org.label(class="form-label") )}}
-        {{( form.squad.org(class="form-control") )}}
-        <br>
-        {{( form.squad.pro.label(class="form-label") )}}
-        {{( form.squad.pro(class="form-control") )}}
+                    {{( form.squad.org.label(class="form-label") )}}
+                    {{( form.squad.org(class="form-control") )}}
+                    <br>
+                    {{( form.squad.pro.label(class="form-label") )}}
+                    {{( form.squad.pro(class="form-control") )}}
 
-        <br>
-        {{( form.squad.submit(class="btn btn-secondary") )}}
+                    <br>
+                    {{( form.squad.submit(class="btn btn-secondary") )}}
 
-      </form>
+                  </form>
 
-      <script>
-        var squad_selector = document.getElementById("org");
-        var pro_select = document.getElementById("pro");
+                  <script>
+                    var squad_selector = document.getElementById("org");
+                    var pro_select = document.getElementById("pro");
 
-        squad_selector.onchange = function()  {
+                    squad_selector.onchange = function()  {
 
-            org = squad_selector.value;
+                        org = squad_selector.value;
 
-            fetch('/pro/' + org).then(function(response) {
+                        fetch('/pro/' + org).then(function(response) {
 
-                response.json().then(function(data) {
-                    var optionHTML = '';
+                            response.json().then(function(data) {
+                                var optionHTML = '';
 
-                    for (var protocol of data.protocols) {
-                        var pName = '<option>' + protocol.name + '</option>';
-                        if ( optionHTML.includes(pName) === false) {
-                          optionHTML += '<option>' + protocol.name + '</option>';
-                        }
+                                for (var protocol of data.protocols) {
+                                    var pName = '<option>' + protocol.name + '</option>';
+                                    if ( optionHTML.includes(pName) === false) {
+                                      optionHTML += '<option>' + protocol.name + '</option>';
+                                    }
+                                }
+
+                                pro_select.innerHTML = optionHTML;
+                            })
+
+                        });
                     }
-
-                    pro_select.innerHTML = optionHTML;
-                })
-
-            });
-        }
-    </script>
-</div>
-</div>
-</div>
-<br><br>
-    <div class="card text-center">
+                </script>
+            </div>
+            </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card text-center rounded-border">
   <div class="card-header text-muted" style="text-align:left">
     Player view: </div>
   <div class="card-body">
     <h5 class="card-title">View player profiles</h5>
     <p class="card-text">Select a player to view detailed performance analysis</p>
-    <br>
-
-
     <div class="shadow p-3 mb-5 bg-body rounded">
       <form method="POST">
         {{ form.player.csrf_token }}
@@ -129,9 +126,14 @@
       </div>
     </div>
       </div>
-  <br><br>
+        </div>
+      </div>
 
-    <div class="card text-center">
+
+<br>
+    <div class="row align-items-center">
+      <div class="col-md-12">
+        <div class="card text-center rounded-border">
   <div class="card-header text-muted" style="text-align:left"> Information: </div>
   <div class="card-body">
     <h5 class="card-title">Help centre</h5>
@@ -151,14 +153,11 @@
     </div>
     <br>
   </div>
-
-
-
-
-
-
-
   </div>
+      </div>
+    </div>
+    </div>
+</div>
   <br><br>
   </body>
 {% endblock %}
