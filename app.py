@@ -205,7 +205,7 @@ def dashboard():
         except:
             org = request.form['squad']
             name = request.form['name']
-            playerTestData = PlayerData.query.filter_by(User=name, Org=org)
+            playerTestData = PlayerData.query.filter_by(User=name, Org=org, loginID=current_user.id)
             sessions, lastBaseline, baselineList, baselineProtocolList, \
             lastFatigue, fatigueList, fatigueProtocolList, dates, numTests = pb.getPlayerDict(playerTestData)
             playerSessions = pb.getSessions(sessions)

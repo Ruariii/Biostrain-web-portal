@@ -92,7 +92,7 @@
                             <div class="info-icon">
                               <span class="info-icon__symbol">i</span>
                                   <div class="info-icon__content" style="width:50%">
-                                    <p>Use this plot to observe your performance in the key metrics.</p>
+                                    <p>Use this plot to assess performance in your most recent session as a percentage of your all-time best.</p>
                                   </div>
                             </div>
                         </div>
@@ -325,17 +325,6 @@ var radarChart = new Chart(radarChartCanvas, {
       pointBorderColor: '#fff',
       pointHoverBackgroundColor: '#fff',
       pointHoverBorderColor: 'rgba(75, 192, 192, 1)'
-    },
-    {
-      label: 'PB',
-      data: Object.values(radarData['PB']),
-      fill: true,
-      backgroundColor: 'rgba(255, 99, 132, 0.2)',
-      borderColor: 'rgba(255, 99, 132, 1)',
-      pointBackgroundColor: 'rgba(255, 99, 132, 1)',
-      pointBorderColor: '#fff',
-      pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(255, 99, 132, 1)'
     }]
   },
   options: {

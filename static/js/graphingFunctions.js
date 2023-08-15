@@ -664,17 +664,17 @@ function getRadarData(playerSessions) {
   for (var session in playerSessions) {
     var PeakL = playerSessions[session]['LHTZ']['avg']['Peak crush factor'][0]
     var PeakR = playerSessions[session]['RHTZ']['avg']['Peak crush factor'][0]
-    var PeakScore = (PeakL+PeakR)/6
+    var PeakScore = (PeakL+PeakR)
     peakScores.push(PeakScore)
 
     var F150L = playerSessions[session]['LHTZ']['avg']['Crush factor at 150ms'][0]
     var F150R = playerSessions[session]['RHTZ']['avg']['Crush factor at 150ms'][0]
-    var F150Score = (F150L+F150R)/2.4
+    var F150Score = (F150L+F150R)
     f150Scores.push(F150Score)
 
     var RFDL = playerSessions[session]['LHTZ']['avg']['Combined RFD 50-150ms'][0]
     var RFDR = playerSessions[session]['RHTZ']['avg']['Combined RFD 50-150ms'][0]
-    var RFDScore = (RFDL+RFDR)/12.5
+    var RFDScore = (RFDL+RFDR)
     rfdScores.push(RFDScore)
 
     var AsymP = playerSessions[session]['Asymmetry']['avg']['Peak crush factor'][0]
@@ -691,48 +691,22 @@ function getRadarData(playerSessions) {
     };
   };
 
-  if (lsPeak > 100) {
-    lsPeak = 100
-  };
-  if (lsF150 > 100) {
-    lsF150 = 100
-  };
-  if (lsRFD > 100) {
-    lsRFD = 100
-  };
-  if (lsAsym < 0) {
-    lsAsym = 0
-  };
-
   var atPeak = Math.max(...peakScores);
   var atF150 = Math.max(...f150Scores);
   var atRFD = Math.max(...rfdScores);
   var atAsym = Math.max(...asymScores);
-  if (atPeak > 100) {
-    atPeak = 100
+  var asymPScore = 0;
+  if (Math.abs(lsAsym/atAsym)*100) {
+    asymPScore = (Math.abs(lsAsym/atAsym)*100)
   };
-  if (atF150 > 100) {
-    atF150 = 100
-  };
-  if (atRFD > 100) {
-    atRFD = 100
-  };
-  if (atAsym < 0) {
-    atAsym = 1
-  };
+
 
   let radarData = {
     'last-session': {
-      'Peak force': lsPeak,
-      'Force at 150ms': lsF150,
-      'RFD': lsRFD,
-      'Transition zone similarity': lsAsym
-    },
-    'PB': {
-      'Peak force': atPeak,
-      'Force at 150ms': atF150,
-      'RFD': atRFD,
-      'Transition zone similarity': atAsym
+      'Peak force': (lsPeak/atPeak)*100,
+      'Force at 150ms': (lsF150/atF150)*100,
+      'RFD': (lsRFD/atRFD)*100,
+      'Transition zone similarity': asymPScore
     }
   };
 

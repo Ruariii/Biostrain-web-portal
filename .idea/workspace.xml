@@ -3,11 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="979caf6e-a1cb-4834-bfa4-7a692b335ec3" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biostrain.db" beforeDir="false" afterPath="$PROJECT_DIR$/biostrain.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/graphingFunctions.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/graphingFunctions.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/playerinfo.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/playerinfo.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/playernew.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/playernew.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/progresstracker.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/progresstracker.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
